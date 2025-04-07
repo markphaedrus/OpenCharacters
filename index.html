@@ -9103,6 +9103,23 @@
         console.error(e);
       }
 
+      try {
+        let dateWarningLastGiven = (await db.misc.get("dateLastWarningGiven"))?.value;
+        let currentDate = new Date();
+        let giveWarning = (dateWarningLastGiven === undefined);
+        if (!giveWarning) {
+          let daysSinceWarning = (currentDate - dateWarningLastGiven) / (1000 * 3600 * 24);
+          if (daysSinceWarning > 15) {
+            giveWarning = true;
+          }
+        }
+        if (giveWarning) {
+          alert("Periodic warning: This page is experimental and has no warrantees, express or implied. Pricing information displayed is approximate. Please remember to regularly export your stories to avoid accidental loss.");
+          await db.misc.put({key:"dateLastWarningGiven", value:currentDate});
+        }
+      } catch(e) {
+        console.error(e);
+      }
       console.log("Finished initialization.");
 
    
