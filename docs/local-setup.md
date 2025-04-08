@@ -4,7 +4,7 @@ Note that when you load up OpenCharacters via the usual URL, it *is running loca
 But if you want to also *serve* the HTML/JavaScript files from your own machine, you can use this guide. This might be handy if you want to completely opt-in to any updates to OpenCharacters, instead of receiving updates automatically when I update this code repository.
 
 1. [Download this project as a zip file](https://github.com/josephrocca/OpenCharacters/archive/refs/heads/main.zip) and unzip it
-2. Install the [Web Server For Chrome](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb/related?hl=en) web app/extension
+2. Install the [Simple Web Server](https://simplewebserver.org/) application
 3. Launch the app and select the unzipped folder [as shown in the intro video](https://www.youtube.com/watch?v=AK6swHiPtew)
 4. **Important**: Once you select the folder and switch on the server with the toggle, it'll show you a URL like `http://127.0.0.1:8887`, but you should change it to `http://localhost:8887` because otherwise (due [very strange engineering choices](https://stackoverflow.com/questions/43895390/imgur-images-returning-403) at Imgur HQ based on the "referrer" header), Imgur images won't load. So just swap the `127.0.0.1` part to `localhost` and that'll fix image loading problems.
 5. Visit the URL in your browser.
@@ -13,9 +13,11 @@ Note that chatacter URLs look like this: `https://josephrocca.github.io/OpenChar
 
 ## Notes
 
-If you don't like the "Web Server For Chrome" app, you're free to use any sort of web server you like, of course. If you know the basics of using the command line, then there are lots of option. You can ask ChatGPT for help based on your operating system. Just ask it something like "I have a folder that I'd like to serve with a static web server on [your operating system] but I'm a noob, please give me detailed instructions on how to do that without jargon".
+If you don't like the "Simple Web Server" app, you're free to use any sort of web server you like, of course. If you know the basics of using the command line, then there are lots of option. You can ask ChatGPT for help based on your operating system. Just ask it something like "I have a folder that I'd like to serve with a static web server on [your operating system] but I'm a noob, please give me detailed instructions on how to do that without jargon".
 
 **IMPORTANT:** Your character/convo data is stored locally in your browser regardless of whether you serve it yourself, or use the official OpenCharacters URL. But note that a fresh database will be created for every URL that you serve on. For example, if you serve it at `http://localhost:8887` and make some characters/convos, but then later serve it at `http://localhost:3000`, you'll get a fresh database. So you'll have to go back to the `8887` URL, export your data, and then import it to the `3000` URL. This is just how browsers work. Each "site" gets its own fresh database (otherwise any random site could read all your data from other sites). The `8887`/`3000` part is called the "port", and each port is treated as its own separate website, so it has its own local database/storage allocated by the browser.
+
+With modern browsers, it is very helpful to configure your local web server to serve the page using HTTPS rather than plain HTTP. That's because, for pages not using HTTPS, the browser will never make the page's local storage truly persistent -- there will always be the chance that the browser will decide to clear the page's local storage, throwing out your characters and threads.
 
 If you want to use the command line, I'd recommend Deno because it allows you to give scripts very specific permissions (e.g. only allow access to the current folder). By default it doesn't give scripts any permissions - so scripts can't do anything to harm your computer - so Deno is like a web browser in that sense - you can run code safely, and decide whether or not to give permissions that it requests. Here's how to run a server in Deno:
 

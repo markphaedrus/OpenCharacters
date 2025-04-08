@@ -1008,23 +1008,23 @@
         }
         if ((thread.modelName != "good") && (thread.modelName != "great")) {
           if (availableModels[thread.modelName] === undefined) {
-            debugger;
             thread.modelName = "good";
             alert("Thread " + thread.id + " is using a model that is no longer supported. Switching to the current OpenAI good/cheap model. If this isn't what you want, please pick a new model manually.");
           }
         }
 
-        if(thread.textEmbeddingModelName === undefined) {
+        {
           let character;
-          if(opts.characters) character = opts.characters.find(c => c.id === thread.characterId);
-          else character = await db.characters.get(thread.characterId);
-          thread.textEmbeddingModelName = character.textEmbeddingModelName;
-        }
-        if (thread.textEmbeddingModelName != "default") {
-          if (availableModels[thread.textEmbeddingMemoryName] === undefined) {
-            debugger;
-            character.textEmbeddingModelName = "default";
-            alert("Thread " + thread.id + " is using a text embedding model that is no longer supported. Switching to the current default embedding model.");
+            if(opts.characters) character = opts.characters.find(c => c.id === thread.characterId);
+            else character = await db.characters.get(thread.characterId);
+          if(thread.textEmbeddingModelName === undefined) {
+            thread.textEmbeddingModelName = character.textEmbeddingModelName;
+          }
+          if (thread.textEmbeddingModelName != "default") {
+            if (availableModels[thread.textEmbeddingMemoryName] === undefined) {
+              character.textEmbeddingModelName = "default";
+              alert("Thread " + thread.id + " is using a text embedding model that is no longer supported. Switching to the current default embedding model.");
+            }
           }
         }
         if(thread.folderPath === undefined) thread.folderPath = ""; 
@@ -9092,10 +9092,15 @@
             console.log("Storage will not be cleared except by explicit user action.");
           } else {
             console.warn("Storage may be cleared by the browser under storage pressure.");
-            // Can't just use e.g. message count because they could have just imported a bunch of messages.
-            let datesApplicationWasUsedInThisBrowser = (await db.misc.get("datesApplicationWasUsedInThisBrowser"))?.value ?? [];
-            if(datesApplicationWasUsedInThisBrowser.length > 10) {
-              alert("Your browser is not allowing OpenCharacters to store data in a way that is 100% permanent. Your browser may clear your OpenCharacters data if your hard drive is nearly full. The browser will eventually grant permission once it recognises that you are a regular user of this site (i.e. once you demonstrate that you trust this site), but until then, please be sure to backup/export your data often. If you're a regular user of OpenCharacters and you're still seeing this message after a week or so of use, please submit a bug report on our Discord server."); 
+            let url = window.location.href;
+            if (url.startsWith("http:")) {
+              alert("It appears that you are hosting OpenCharacters locally, and that you are doing it via HTTP rather than HTTPS. Please be aware that this will not allow OpenCharacters to store data in a way that is 100% permanent. Your browser may clear your OpenCharacters data if your hard drive is nearly full. Please export your characters and threads frequently, and if at all possible, please switch to using HTTPS for local hosting.");
+            } else {
+              // Can't just use e.g. message count because they could have just imported a bunch of messages.
+              let datesApplicationWasUsedInThisBrowser = (await db.misc.get("datesApplicationWasUsedInThisBrowser"))?.value ?? [];
+              if(datesApplicationWasUsedInThisBrowser.length > 10) {
+                alert("Your browser is not allowing OpenCharacters to store data in a way that is 100% permanent. Your browser may clear your OpenCharacters data if your hard drive is nearly full. The browser will eventually grant permission once it recognises that you are a regular user of this site (i.e. once you demonstrate that you trust this site), but until then, please be sure to backup/export your data often. If you're a regular user of OpenCharacters and you're still seeing this message after a week or so of use, please submit a bug report on our Discord server."); 
+              }
             }
           }
         });
@@ -9104,7 +9109,7 @@
       }
 
       try {
-        let dateWarningLastGiven = (await db.misc.get("dateLastWarningGiven"))?.value;
+        let dateWarningLastGiven = (await db.misc.get("dateWarningLastGiven"))?.value;
         let currentDate = new Date();
         let giveWarning = (dateWarningLastGiven === undefined);
         if (!giveWarning) {
@@ -9115,7 +9120,7 @@
         }
         if (giveWarning) {
           alert("Periodic warning: This page is experimental and has no warrantees, express or implied. Pricing information displayed is approximate. Please remember to regularly export your stories to avoid accidental loss.");
-          await db.misc.put({key:"dateLastWarningGiven", value:currentDate});
+          await db.misc.put({key:"dateWarningLastGiven", value:currentDate});
         }
       } catch(e) {
         console.error(e);
