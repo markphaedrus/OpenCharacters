@@ -3227,19 +3227,27 @@
       async function ensureLoreUrlsAreLoaded({loreBookUrls, modelName}) {
         let loadingModal = createLoadingModal("Downloading lore...");
         let urlI = 0;
+        let useCORSProxy = (await db.misc.get("useCORSProxy"))?.value || "yes";
+ 
         for(let url of loreBookUrls) {
           let downloadUrl;
           let origin = new URL(url).origin;
-          if(origin.endsWith("jsdelivr.net")
+          if (useCORSProxy == "no") {
+            downloadUrl = url;
+            console.log("Loading lore from " + url + " because CORS proxy is disabled.");
+          }
+          else if(origin.endsWith("jsdelivr.net")
             || (origin.endsWith("huggingface.co") && url.includes("/resolve/"))
             || origin === "https://raw.githubusercontent.com"
           ) {
             // the server has correct CORS headers, so we don't need the proxy:
             downloadUrl = url;
+            console.log("Loading lore from " + url + " because it's known to be CORS-compliant.")
           } else {
             // code for this CORS proxy server is here: https://replit.com/@joe64/opencharacters-cors-proxy
             // EDIT: Moved to Glitch since Replit raised prices to an absurd $6/month for a 0.25 vCPU machine in Jan 2024 (no more "Always On" machines - only "Deployments" now).
             downloadUrl = "https://opencharacters-cors-proxy.glitch.me/?url=" + encodeURIComponent(url);
+            console.log("Loading lore from " + downloadUrl + " because CORS proxy looks necessary.");
           }
           let text = await fetch(downloadUrl).then(r => r.text());
           let entryTextArr = text.replace(/\r/g, "").split(/\n{2,}/).map(entry => entry.trim()).filter(entry => entry);
@@ -8340,6 +8348,7 @@
         let openAiApiKeyOriginal = (await db.misc.get("openAiApiKey"))?.value || "";
         let customModelConfigsOriginal = (await db.misc.get("customModelConfigs"))?.value || [];
         let showInlineReminderOriginal = (await db.misc.get("showInlineReminder"))?.value || "yes";
+        let useCORSProxyOriginal = (await db.misc.get("useCORSProxy"))?.value || "yes";
         let customPostPageLoadMainThreadCodeOriginal = (await db.misc.get("customPostPageLoadMainThreadCode"))?.value || "";
         const result = await prompt2({
           userName: {label: "Your name:", type: "textLine", defaultValue: userNameOriginal},
@@ -8347,10 +8356,11 @@
           openAiApiKey: {label: "OpenAI API secret key (<a href='https://platform.openai.com/account/api-keys' target='_blank'>from here</a>):", type: "textLine", placeholder:"sk-...", defaultValue: openAiApiKeyOriginal},
           showInlineReminder: {hidden:true, label: "Show 'inline' reminder edit button:", type: "select", options:[{value:"yes"}, {value:"no"}], defaultValue: showInlineReminderOriginal},
           customModelConfigs: {hidden:true, cssText:"white-space:pre; font-family:monospace;", label: "Custom model configs (<a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/custom-models.md' target='_blank'>follow this guide</a>):", type: "text", placeholder:`{name:"...", endpointUrl:"..."}\n{name:"...", endpointUrl:"...", apiKey:"..."}\n...`, defaultValue: customModelConfigsOriginal.map(o => JSON5.stringify(o)).join("\n")},
+          useCORSProxy: {hidden:true, label:"Use CORS proxy when downloading lore", type: "select", options:[{value:"yes"}, {value:"no"}], defaultValue: useCORSProxyOriginal},
           customPostPageLoadMainThreadCode: {hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: "This code will be run on this page after page load. You can use it to mod the OpenCharacters UI, or to e.g. <a href='https://gist.github.com/josephrocca/a82216e2f2fdf54ad8dd79dbd4cfd625' target='_blank'>proxy all `fetch` requests</a>, or whatever. Note that there are no backwards-compatibility guarantees on the main thread UI, so your code may break eventually. <b>This code can access all your data</b> - make sure it's from a trustworthy source if you didn't write it yourself (maybe ask GPT-4 what it does if you don't know how to code and are weary). Refresh the page after saving for your code to take effect.", placeholder:"// add code here", type: "text", defaultValue: customPostPageLoadMainThreadCodeOriginal},
         }, {showHiddenInputsText: "show advanced settings"});
         if(!result) return;
-        let { userName, userAvatarUrl, openAiApiKey, customModelConfigs, customPostPageLoadMainThreadCode } = result;
+        let { userName, userAvatarUrl, openAiApiKey, customModelConfigs, useCORSProxy, customPostPageLoadMainThreadCode } = result;
 
         customModelConfigs = customModelConfigs.split("\n").map(s => s.trim()).filter(s => s).map(s => JSON5.parse(s));
         for(let config of customModelConfigs) {
@@ -8400,6 +8410,7 @@
         await db.misc.put({key: "openAiApiKey", value: openAiApiKey});
         await db.misc.put({key: "customModelConfigs", value: customModelConfigs});
         await db.misc.put({key: "showInlineReminder", value: showInlineReminder});
+        await db.misc.put({key: "useCORSProxy", value: useCORSProxy});
         await db.misc.put({key: "customPostPageLoadMainThreadCode", value: customPostPageLoadMainThreadCode});
         
         await updateModelList();
