@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en-US">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
@@ -136,6 +136,7 @@
         cursor:pointer;
         border: 1px solid var(--border-color);
         position: relative;
+        -webkit-user-select: none;
         user-select:none;
       }
       #chatThreads .thread, #chatThreads .threadFolder {
@@ -242,8 +243,8 @@
 
       /* hide threads scrollbar */
       #chatThreads {
-        -ms-overflow-style: none;  /* Internet Explorer 10+ */
-        scrollbar-width: none;  /* Firefox */
+        -ms-overflow-style: -ms-autohiding-scrollbar;  /* Internet Explorer 10+ */
+        scrollbar-width: thin;
       }
       #chatThreads::-webkit-scrollbar { 
         display: none;  /* Safari and Chrome */
@@ -355,6 +356,7 @@
         width: 100%;
         padding:0.5rem;
         cursor:pointer;
+        -webkit-user-select: none;
         user-select:none;
       }
 
@@ -382,6 +384,7 @@
         align-items: center;
       }
       #characterSelection .character {
+        -webkit-user-select: none;
         user-select:none;
       }
 
@@ -460,12 +463,12 @@
     <div id="main" style="display:flex; position:fixed; top:0; right:0; left:0; bottom:0;">
       <div id="leftColumn" style="display:flex; flex-direction:column; width:270px; min-width:270px; padding:0.5rem; ">
         <div style="display:flex;">
-          <button id="newThreadButton" style="width:100%; cursor:pointer; min-height:2rem;">💬 new chat</button>
-          <button id="closeLeftColumnButton" style="cursor:pointer;min-height:2rem;margin-left: 0.5rem;min-width: 2rem;">☰</button>
+          <button id="newThreadButton" type="button" title="New thread" style="width:100%; cursor:pointer; min-height:2rem;">💬 new chat</button>
+          <button id="closeLeftColumnButton" type="button" title="Open or close thread list and controls" style="cursor:pointer;min-height:2rem;margin-left: 0.5rem;min-width: 2rem;">☰</button>
         </div>
         <div id="threadSearchCtn" style="display:flex; width:100%; margin-top:0.5rem;">
           <input id="threadSearchInput" style="height: 100%; flex-grow: 1; min-width: 0; padding-left: 0.5rem;" type="text" placeholder="search threads...">
-          <button id="threadSearchButton" style="cursor:pointer;min-height: 2rem;min-width: 2rem;margin-left: 0.5rem;">🔎</button>
+          <button id="threadSearchButton" type="button" title="Search threads" style="cursor:pointer;min-height: 2rem;min-width: 2rem;margin-left: 0.5rem;">🔎</button>
         </div>
         <!-- <div id="threadFolderNavigationBar" style="display:flex; width:100%; margin-top:0.5rem;">
           <button id="threadFolderBackButton" style="cursor:pointer;min-height: 2rem;min-width: 2rem;margin-left: 0.5rem;">🔙</button>
@@ -474,26 +477,26 @@
         <div id="chatThreads" data-current-folder-path=""></div>
         <div id="appOptions">
           <div style="display:flex;">
-            <button id="settingsButton" class="appOptionButton">⚙️ settings</button>
+            <button type="button" title="Settings" id="settingsButton" class="appOptionButton">⚙️ settings</button>
             <!-- <button id="statsButton" class="appOptionButton" style="margin-left: 0.5rem; width: 2rem;">📊</button> -->
           </div>
           <div style="display: flex;">
-            <button id="clearDataButton" class="appOptionButton" style="width: 4rem;">🗑️</button>
-            <button id="exportDataButton" class="appOptionButton" style="margin-left: 0.5rem; margin-right: 0.5rem;">💾 export</button>
-            <button class="appOptionButton" style="position:relative;">📁 import<input id="importDataFileInput" style="position:absolute; top:0; left:0; right:0; bottom:0; opacity:0; cursor:pointer;" type="file"></button>
+            <button type="button" title="Clear all data" id="clearDataButton" class="appOptionButton" style="width: 4rem;">🗑️</button>
+            <button type="button" title="Export all data" id="exportDataButton" class="appOptionButton" style="margin-left: 0.5rem; margin-right: 0.5rem;">💾 export</button>
+            <button type="button" title="Options" class="appOptionButton" style="position:relative;">📁 import<input title="Import data file" id="importDataFileInput" style="position:absolute; top:0; left:0; right:0; bottom:0; opacity:0; cursor:pointer;" type="file"></button>
           </div>
-          <button onclick="window.open('https://github.com/josephrocca/OpenCharacters/blob/main/README.md')" class="appOptionButton">❓ about this project <span style="font-size:0.6rem; opacity:0.5;">001</span></button>
+          <button title="About this project" type="button" onclick="window.open('https://github.com/josephrocca/OpenCharacters/blob/main/README.md')" class="appOptionButton">❓ about this project <span style="font-size:0.6rem; opacity:0.5;">001</span></button>
         </div>
       </div>
 
       <div id="middleColumn" style="flex-grow:1; display:flex; flex-direction:column; position:relative; overflow:hidden; min-width:200px; z-index:1;">
         <div id="middleColumnShadowOverlay" style="display:none; position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5); z-index:20;"></div>
         <div id="characterSelection" class="middleColumnScreen" style="flex-grow:1; display:none; overflow: auto;">
-          <button id="characterSelectionOpenLeftColumnButton" class="openLeftColumnButton" style="background: var(--button-bg);border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;width: 2rem;min-height: 2rem;margin-right: 0.5rem;position: absolute;top: 0.5rem;left: 0.5rem;">☰</button>
+          <button type="button" id="characterSelectionOpenLeftColumnButton" class="openLeftColumnButton" style="background: var(--button-bg);border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;width: 2rem;min-height: 2rem;margin-right: 0.5rem;position: absolute;top: 0.5rem;left: 0.5rem;">☰</button>
           <div>
             <h2 style="text-align:center;margin-bottom: 0.5rem;">Your Characters</h2>
             <div style="margin-bottom: 0.5rem;display: flex;justify-content: center;">
-              <button id="newCharacterButton" style="padding: 0.25rem;">🆕 new character</button>
+              <button type="button" id="newCharacterButton" style="padding: 0.25rem;">🆕 new character</button>
               <!-- <button id="newFolderCharacterButton" style="padding: 0.25rem; margin-left: 0.5rem;">📁 new folder</button> -->
             </div>
           </div>
@@ -507,10 +510,10 @@
           <div id="customCodeChatInterfaceWrapper" style="display:none;"></div>
           <div id="builtInChatInterfaceWrapper">
             <div id="messageFeedHeaderBar" style="display: flex; position:absolute;height: 2rem;right: 0;left: 0;margin: 0.5rem; z-index:30;">
-              <button id="messageFeedOpenLeftColumnButton" class="openLeftColumnButton" style="display:none; background: var(--button-bg);border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem; min-width: 2rem; height: 100%; margin-right:0.5rem;">☰</button>
+              <button id="messageFeedOpenLeftColumnButton" type="button" class="openLeftColumnButton" style="display:none; background: var(--button-bg);border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem; min-width: 2rem; height: 100%; margin-right:0.5rem;">☰</button>
               <div style="background: var(--button-bg); display:flex; height: 100%; border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;">
                 <div style="display: flex;align-items: center;font-size:var(--button-font-size);margin-right: 0.25rem;">model:</div>
-                <select id="threadModelSelector" style="max-width:130px;"></select>
+                <select id="threadModelSelector" title="Thread model" style="max-width:130px;"></select>
                 <div id="threadModelSelectorInfo" style="display: flex;align-items: center;font-size:var(--button-font-size);margin-right: 0.25rem;">ℹ️</div>
               </div>
               <!-- <div id="threadSettingsButton" style="margin-left:0.5rem; cursor:pointer;   background: var(--button-bg); display:flex; height: 100%; border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;">
@@ -530,14 +533,14 @@
               <div style="display:flex;">
                 <textarea id="messageInput" style="flex-grow:1; min-height:4rem; font-size:100%;" title="commands:&#10;/ai - prompt a reply from ai&#10;/ai &lt;instruction&gt; - prompt reply with instruction&#10;/ai @CharName#123 &lt;instruction&gt; - prompt reply with another character (ID=123)&#10;/user &lt;instruction&gt; - generate a user reply&#10;/sys &lt;message&gt; - reply as system&#10;/sum - open summary editor&#10;/mem - open memory editor&#10;/lore - open lore editor&#10;/lore &lt;text&gt; - add a lore entry&#10;/name &lt;name&gt; - set your name for this thread&#10;/avatar &lt;url&gt; - set your avatar image for this thread&#10;/import - add chat messages in bulk&#10;/flushembeds - flush the embedding cache that's used to determine what memories are relevant&#10;&#10;• You can add '/ai &lt;instruction&gt;' as the final line in your normal messages to instruct AI for its reply.&#10;• Double-click this text box to show input history"></textarea>
                 <div style="display:flex; flex-direction:column; margin-left:0.25rem;">
-                  <button id="sendButton" style="min-width:80px; flex-grow:1;">send</button>
+                  <button id="sendButton" type="button" style="min-width:80px; flex-grow:1;">send</button>
                   <div style="position:relative;">
                     <div id="threadOptionsPopup" style="position:absolute; display:none; padding:0.5rem; background:var(--background); border-radius:var(--border-radius); width:max-content; right:0; bottom:0; border:1px solid var(--border-color);">
-                      <button id="addShortcutButton">✨ add shortcut</button>
+                      <button id="addShortcutButton" type="button">✨ add shortcut</button>
                       <!-- <button id="replyLoopButton">➰ reply loop</button> -->
                     </div>
                   </div>
-                  <button id="threadOptionsButton" style="min-width:80px; margin-top:0.25rem;">options</button>
+                  <button id="threadOptionsButton" type="button" style="min-width:80px; margin-top:0.25rem;">options</button>
                 </div>
               </div>
             </div>
@@ -1158,11 +1161,13 @@
         {name:"chatgpt-4o-latest", shortLabel:"ChatGPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 5.00 , completion: 15.00 }},
         {name:"gpt-4o", shortLabel:"GPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 2.50 , completion: 10.00 }},
         {name:"gpt-4o-mini", shortLabel:"GPT-4o-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.15, completion: 0.60}},
+        {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.50 , completion: 8.00 }},
+        {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.10, completion: 1.60}},
         {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{prompt: 1.10 , completion: 4.40}},        
         {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, averageInverseDistance:1.4, tokenPricing:{prompt:0.02, completion: 0.02}},
         {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, averageInverseDistance:4, tokenPricing:{prompt:0.10, completion: 0.10}},
       ];
-      const modelPricingLastUpdateDate = new Date("2025-03-25");
+      const modelPricingLastUpdateDate = new Date("2025-04-15");
 
       // Model used for "good" character default option
       const openAIGoodCharacterModel = "gpt-4o-mini";
@@ -1416,7 +1421,7 @@
             if(icon && icon.startsWith("http")) {
               icon = `<img src="${sanitizeHtml(icon)}" style="height:1.2rem; width:1.2rem; object-fit:cover; border-radius:2px;"/>`;
             }
-            return `<div class="threadFolder" data-folder-path="${sanitizeHtml(folderPath)}">${icon ?? "📁"}<span style="flex-grow:1; margin-left:0.5rem;">${sanitizeHtml(name)}</span><span class="editFolderName emojiButton" style="font-size:0.7rem; display:flex; align-items:center;">✏️</span></div>`;
+            return `<div class="threadFolder" title="Thread folders" data-folder-path="${sanitizeHtml(folderPath)}">${icon ?? "📁"}<span style="flex-grow:1; margin-left:0.5rem;">${sanitizeHtml(name)}</span><span title="Edit folder name" class="editFolderName emojiButton" style="font-size:0.7rem; display:flex; align-items:center;">✏️</span></div>`;
           }).join("");
         }
         // $.chatThreadFolders.innerHTML = foldersHtml;
@@ -1441,19 +1446,19 @@
             avatarUrl = dataUrlToCachedBlobUrlMap[avatarUrl];
           }
           return `
-            <div class="thread" data-thread-id="${sanitizeHtml(thread.id)}">
+            <div class="thread" title="${sanitizeHtml(thread.name)}" data-thread-id="${sanitizeHtml(thread.id)}">
               <span class="favStar" data-is-fav="${thread.isFav}">⭐</span>
               <span class="changeFolderPath">📁</span>
               <div class="avatar" style="${avatarUrl ? `background-image:url(${sanitizeHtml(avatarUrl)})` : ""}; border:1px solid var(--border-color);"></div>
               <div class="info" style="flex-grow:1; padding-left:0.5rem;">
                 <div class="nameWrapper" style="font-weight:bold; font-size:0.8rem;"><span class="name" title="${sanitizeHtml(thread.name)}">${sanitizeHtml(thread.name)}</span></div>
-                <div class="characterName" style="font-size:0.8rem;">${thread.character.name.length > 15 ? sanitizeHtml(thread.character.name.slice(0, 15)+"…") : sanitizeHtml(thread.character.name)} <span style="opacity:0.5; font-weight:normal;" title="Character ID">#${sanitizeHtml(thread.character.id)}</span> <span class="characterEditButton">✏️</span></div>
+                <div class="characterName" style="font-size:0.8rem;">${thread.character.name.length > 15 ? sanitizeHtml(thread.character.name.slice(0, 15)+"…") : sanitizeHtml(thread.character.name)} <span style="opacity:0.5; font-weight:normal;" title="Character ID">#${sanitizeHtml(thread.character.id)}</span> <span title="Edit character" class="characterEditButton">✏️</span></div>
                 <div style="font-size:0.8rem; opacity:0.5; padding-right:0.5rem; display:flex; justify-content:space-between;"><span style="font-size:0.65rem;" title="${sanitizeHtml(thread.modelName)}">${thread.modelName.length > 13 ? sanitizeHtml(thread.modelName.slice(0, 13))+"…" : sanitizeHtml(thread.modelName)}</span><span class="usageStatsSpend" title="API usage/spend" style="font-size:0.65rem;display:flex;align-items:center;">$${threadIdToMoneySpent[thread.id].toFixed(2)}</span><span style="font-size:0.65rem; display:flex; align-items:center; filter:grayscale(1);" title="Thread ID">🧵#${sanitizeHtml(thread.id)}</span></div>
               </div>
               <div style="display:flex; flex-direction:column; justify-content:space-between; font-size:0.65rem;">
-                <span class="button nameEditButton">✏️</span>
-                <span class="button exportButton">💾</span>
-                <span class="button deleteButton">🗑️</span>
+                <span title="Rename thread" class="button nameEditButton">✏️</span>
+                <span title="Export thread" class="button exportButton">💾</span>
+                <span title="Delete thread" class="button deleteButton">🗑️</span>
               </div>
             </div>`;
         }).join("");
@@ -3544,7 +3549,7 @@
 
       let alreadyComputingSummaryForThreadPromises = {};
       let alreadyComputingSummaryForThreadResolvers = {};
-      async function computeAndSaveThreadSummaryIfNeeded({threadId, upToMessageId, onProgressMessage, signals, exitOnFirstHashMissAndReturnHashChain, continuePastCurrentSummary}) {
+      async function computeAndSaveThreadSummaryIfNeeded({threadId, upToMessageId, onProgressMessage, signals, exitOnFirstHashMissAndReturnHashChain, continuePastCurrentSummary, forceSummaryThroughMessageId}) {
 
         // Note:
         //  - continuePastCurrentSummary is so that we can load summaries "ahead of time" (it just computes - causes this function to not return anything)
@@ -5042,7 +5047,7 @@
         }
 
         if(apiTokenUsage) {
-          await trackTokenUsage({threadId, modelName, usageData:apiTokenUsage});
+          await trackTokenUsage({threadId, modelName, usageData:apiTokenUsage, purpose:"bot reply"});
         }
         
         onProgressMessage({message:"finished"});
@@ -5066,7 +5071,9 @@
         return date.getTime();
       }
 
-      async function trackTokenUsage({threadId, modelName, usageData}) {
+      async function trackTokenUsage({threadId, modelName, usageData, purpose}) {
+        console.log(`Token usage tracked for ${purpose}: prompt ${usageData.prompt}, completion ${usageData.completion}, total ${usageData.total}`);
+        
         // get the character id:
         let thread = await db.threads.get(threadId);
         let characterId = thread.characterId;
@@ -5218,7 +5225,7 @@
 
         if(apiTokenUsage) {
           let usageData = {prompt:apiTokenUsage.prompt_tokens, completion:apiTokenUsage.completion_tokens, total:apiTokenUsage.total_tokens};
-          await trackTokenUsage({threadId, modelName, usageData});
+          await trackTokenUsage({threadId, modelName, usageData, purpose:"chat completion"});
         }
 
         opts.attemptsSoFar++;
@@ -5934,6 +5941,17 @@
             display:{html:`<div style="white-space:pre-wrap;">Here's some data that the character used to generate this message:\n\n${content.join("\n\n")}</div>`, type:"none"},
           }, { submitButtonText: "close", cancelButtonText: null });
         });
+        messageEl.querySelector(".debugButton")?.addEventListener("click", async function() {
+          let message = await db.messages.get(parseInt(messageEl.dataset.id));
+          
+          let content = [];
+
+          content.push(`Message order: ${message.order.toString()}`);
+
+          prompt2({
+            display:{html:`<div style="white-space:pre-wrap;">Here's debugging information about this message:\n\n${content.join("\n\n")}</div>`, type:"none"},
+          }, { submitButtonText: "close", cancelButtonText: null });
+        });
       }
 
       // right/left arrow to switch message variants:
@@ -5999,6 +6017,10 @@
         let thread = await db.threads.get(messageObj.threadId);
 
         let character = opts.character;
+
+        let showDebugInfo = (await db.misc.get("showDebugInfo"))?.value;
+        let showDebugVerbose = (showDebugInfo == "verbose");
+        let showDebugBasics = showDebugVerbose || (showDebugInfo == "brief");
 
         if(!character && messageObj.characterId === -1) character = await getUserCharacterObj(messageObj.threadId)
         if(!character && messageObj.characterId === -2) character = await getSystemCharacterObj(messageObj.threadId);
@@ -6073,7 +6095,8 @@
           <div class="message ${messageObj.hiddenFrom?.includes("user") ? "hiddenFromUser" : ""}" data-id="${sanitizeHtml(messageObj.id)}" data-order="${sanitizeHtml(messageObj.order)}" data-character-id="${sanitizeHtml(messageObj.characterId)}" data-can-delete="true" data-hash="${messageObjHash}" style="${sanitizeHtml(wrapperStyle)}; position:relative;">
             <div style="text-align:center;"><button class="showHiddenMessageButton" style="cursor:pointer; font-size:0.65rem;">Show hidden message</button></div>
             <div class="bottomButtons">
-              <div class="brainButton emojiButton">🧠</div>
+              <div title="More message info" class="brainButton emojiButton">🧠</div>
+              ${showDebugBasics ? `<div title="Debugging info" class="debugButton emojiButton">🪲</div>` : "" }
             </div>
             <div class="messageWrap">
               <div class="avatar" style="${avatarUrl ? `background-image:url(${sanitizeHtml(avatarUrl)})` : ""};width:${sanitizeHtml(avatarWidth)}px; min-width:${sanitizeHtml(avatarWidth)}px; height:${sanitizeHtml(avatarHeight)}px; border-radius:${sanitizeHtml(avatarBorderRadius)};"></div>
@@ -6081,12 +6104,12 @@
                 <div class="info" style="flex-grow:1; display:flex; font-size:80%; align-items:center; user-select:none;">
                   <div class="characterName" style="font-weight:bold;">${sanitizeHtml(characterName)}</div>
                   <!-- <div class="time" style="font-size:0.8rem; opacity:0.5; margin-left:0.5rem; display: flex; align-items: center;">${getDateTimeString(messageObj.creationTime)}</div> -->
-                  <div class="editButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display: flex; align-items: center; cursor:pointer;">✏️</div>
-                  <div class="deleteButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display: flex; align-items: center; cursor:pointer;">🗑️</div>
+                  <div title="Edit message" class="editButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display: flex; align-items: center; cursor:pointer;">✏️</div>
+                  <div title="Delete message" class="deleteButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display: flex; align-items: center; cursor:pointer;">🗑️</div>
                   <div style="position:relative;display:flex; align-items:center;">
-                    <div class="recomputeButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display:flex; align-items: center; cursor:pointer;">🔁</div>
-                    <div class="recomputeWithAltModelButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display:${showRecomputeWithAltButtonModel ? "flex" : "none"}; align-items: center; cursor:pointer;" title="Regenerate this message with the davinci model (10x more expensive, but less filtered)">🙄</div>
-                    <div class="messageVariantsCtn" style="user-select:none; background: var(--button-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius); min-width:max-content; ${sanitizeHtml(variantCtnCss)}">
+                    <div title="New message variant" class="recomputeButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display:flex; align-items: center; cursor:pointer;">🔁</div>
+                    <div title="New message variant with alternate model" class="recomputeWithAltModelButton emojiButton" style="font-size:0.8rem; margin-left:1rem; display:${showRecomputeWithAltButtonModel ? "flex" : "none"}; align-items: center; cursor:pointer;" title="Regenerate this message with the davinci model (10x more expensive, but less filtered)">🙄</div>
+                    <div title="Message variants" class="messageVariantsCtn" style="user-select:none; background: var(--button-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius); min-width:max-content; ${sanitizeHtml(variantCtnCss)}">
                       <span class="prevMessageVariantButton emojiButton">◄</span>
                       <span class="currentVariantNumber">${sanitizeHtml(currentVariantNumber)}<span style="opacity:0.5">/${sanitizeHtml(messageObj.variants.length)}</span></span>
                       <span class="nextMessageVariantButton emojiButton">►</span>
@@ -6094,6 +6117,7 @@
                   </div>
                   ${messageObj.hiddenFrom?.includes("ai") ? `<div class="hiddenFromAiIcon" onclick="alert('This icon indicates that this message is hidden from the AI.')" title="The AI cannot see this message." style="font-size:0.8rem; margin-left:1rem; display:flex; align-items: center; cursor:pointer;">🙈</div>` : ""}
                   <div class="statusMessage" style="margin-left:1rem;display: flex;align-items: center;cursor:pointer;font-size: 0.7rem;opacity: 0.5;"></div>
+                ${showDebugVerbose ? ("<span title='Debugging info'>" + messageObj.order + "</span>") : ""}
                 </div>
                 <div class="messageText" style="overflow-wrap:break-word;"></div>
               </div>
@@ -8349,6 +8373,7 @@
         let customModelConfigsOriginal = (await db.misc.get("customModelConfigs"))?.value || [];
         let showInlineReminderOriginal = (await db.misc.get("showInlineReminder"))?.value || "yes";
         let useCORSProxyOriginal = (await db.misc.get("useCORSProxy"))?.value || "yes";
+        let showDebugInfoOriginal = (await db.misc.get("showDebugInfo"))?.value || "none";
         let customPostPageLoadMainThreadCodeOriginal = (await db.misc.get("customPostPageLoadMainThreadCode"))?.value || "";
         const result = await prompt2({
           userName: {label: "Your name:", type: "textLine", defaultValue: userNameOriginal},
@@ -8358,9 +8383,10 @@
           customModelConfigs: {hidden:true, cssText:"white-space:pre; font-family:monospace;", label: "Custom model configs (<a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/custom-models.md' target='_blank'>follow this guide</a>):", type: "text", placeholder:`{name:"...", endpointUrl:"..."}\n{name:"...", endpointUrl:"...", apiKey:"..."}\n...`, defaultValue: customModelConfigsOriginal.map(o => JSON5.stringify(o)).join("\n")},
           useCORSProxy: {hidden:true, label:"Use CORS proxy when downloading lore", type: "select", options:[{value:"yes"}, {value:"no"}], defaultValue: useCORSProxyOriginal},
           customPostPageLoadMainThreadCode: {hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: "This code will be run on this page after page load. You can use it to mod the OpenCharacters UI, or to e.g. <a href='https://gist.github.com/josephrocca/a82216e2f2fdf54ad8dd79dbd4cfd625' target='_blank'>proxy all `fetch` requests</a>, or whatever. Note that there are no backwards-compatibility guarantees on the main thread UI, so your code may break eventually. <b>This code can access all your data</b> - make sure it's from a trustworthy source if you didn't write it yourself (maybe ask GPT-4 what it does if you don't know how to code and are weary). Refresh the page after saving for your code to take effect.", placeholder:"// add code here", type: "text", defaultValue: customPostPageLoadMainThreadCodeOriginal},
+          showDebugInfo: {hidden:true, label:"Show debugging controls", type: "select", options:[{value:"verbose"}, {value: "brief"}, {value:"none"}], defaultValue: showDebugInfoOriginal},
         }, {showHiddenInputsText: "show advanced settings"});
         if(!result) return;
-        let { userName, userAvatarUrl, openAiApiKey, customModelConfigs, useCORSProxy, customPostPageLoadMainThreadCode } = result;
+        let { userName, userAvatarUrl, openAiApiKey, customModelConfigs, useCORSProxy, customPostPageLoadMainThreadCode, showDebugInfo } = result;
 
         customModelConfigs = customModelConfigs.split("\n").map(s => s.trim()).filter(s => s).map(s => JSON5.parse(s));
         for(let config of customModelConfigs) {
@@ -8412,7 +8438,7 @@
         await db.misc.put({key: "showInlineReminder", value: showInlineReminder});
         await db.misc.put({key: "useCORSProxy", value: useCORSProxy});
         await db.misc.put({key: "customPostPageLoadMainThreadCode", value: customPostPageLoadMainThreadCode});
-        
+        await db.misc.put({key: "showDebugInfo", value: showDebugInfo});        
         await updateModelList();
 
         // update the user's name and avatar in the message feed:
