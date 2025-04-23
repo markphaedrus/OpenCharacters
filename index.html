@@ -472,7 +472,7 @@
         </div>
         <!-- <div id="threadFolderNavigationBar" style="display:flex; width:100%; margin-top:0.5rem;">
           <button id="threadFolderBackButton" style="cursor:pointer;min-height: 2rem;min-width: 2rem;margin-left: 0.5rem;">🔙</button>
-        </div> -->
+          </div> -->
         <!-- <div id="chatThreadFolders" data-current-folder-path=""></div> -->
         <div id="chatThreads" data-current-folder-path=""></div>
         <div id="appOptions">
@@ -518,7 +518,7 @@
               </div>
               <!-- <div id="threadSettingsButton" style="margin-left:0.5rem; cursor:pointer;   background: var(--button-bg); display:flex; height: 100%; border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;">
                 <div style="display: flex;align-items: center;justify-content:center;font-size:var(--button-font-size);min-width:1.5rem;">⚙️</div>
-              </div> -->
+                </div> -->
             </div>
             <div id="chatBackgroundCtn" style="pointer-events:none; position:absolute; top:0; left:0; right:0; bottom:0; z-index:-10;"></div>
             <div id="noMessagesNotice" style="display:none; text-align:center; padding:1rem; margin-top:4rem;">Type a message to begin the chat.</div>
@@ -527,7 +527,7 @@
             <div id="inputWrapper" style="display:flex; padding:0.5rem; padding-left:0; padding-right:0; flex-direction:column;">
               <!-- <div style="display:flex;margin-bottom: 0.25rem;">
                 <button id="editReminderMessageButton" style="font-size:0.7rem;">✏️ reminder msg</button>
-              </div> -->
+                </div> -->
               <div id="userMessagesSentHistoryCtn"></div>
               <div id="shortcutButtonsCtn"></div>
               <div style="display:flex;">
@@ -540,7 +540,16 @@
                       <!-- <button id="replyLoopButton">➰ reply loop</button> -->
                     </div>
                   </div>
-                  <button id="threadOptionsButton" type="button" style="min-width:80px; margin-top:0.25rem;">options</button>
+                  <div style="display:flex; flex-direction:row; margin-top:2px; align-items:center;">
+                    <select id="repliesPerSendMenu" title="Responses generated each time you click Send" style="margin-right:2px; vertical-align:middle;">
+                      <option>1</option>
+                      <option>2</option>
+                      <option>3</option>
+                      <option>4</option>
+                      <option>5</option>
+                    </select>
+                    <button id="threadOptionsButton" type="button" style="flex-grow:1; vertical-align:middle;">options</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4277,9 +4286,17 @@
         "insufficient_quota": "Looks like you've used up all your OpenAI credits. You can buy more here:\nhttps://platform.openai.com/account\n\nNote that OpenCharacters does not receive any money from this. OpenAI is the company that provides the 'brain' for your AI. OpenCharacters itself is completely free.",
       };
 
+      function sanitizeBotMessage(msg, charname) {
+        // sometimes the gpt-turbo / chat models prefix messages with "characterName:"
+        if(msg && msg.startsWith(`${charname}:`)) {
+          msg = msg.slice(charname.length+1).trim();
+        }
+        return msg;
+      }
+
       let currentBotReplySignals;
       // Note: the reason this doesn't just take threadId as a param is because we use it for regenerateMessage() which doesn't necessarily use all messages in a thread, and we also use it for "reply with..." which can use a different AI character
-      async function getBotReply({messages, threadId, replyingCharacter=null, replyInstruction=null, onStreamingReplyChunk, onProgressMessage, signals={}, modelNameOverride}={}) {
+      async function getBotReply({messages, threadId, replyingCharacter=null, replyInstruction=null, onStreamingReplyChunk, onProgressMessage, signals={}, modelNameOverride, allowMultipleReplies=false}={}) {
         currentBotReplySignals = signals;
 
         // NOTE: Currently, if replyingCharacter only overrides the reminder and instruction.
@@ -4288,6 +4305,9 @@
 
         let originalSendButtonDisabledState = $.sendButton.disabled;
         $.sendButton.disabled = true;
+
+        let repliesToGenerate = 1;
+        if (allowMultipleReplies) { repliesToGenerate = Number($.repliesPerSendMenu.value)};
 
         let thread = await db.threads.get(threadId);
 
@@ -4868,7 +4888,10 @@
         if(!modelType) throw new Error("modelType is undefined for model "+modelName);
         let modelNoTemperatureSupport = availableModels[modelName].noTemperatureSupport;
         let getStreamingResponse = threadCharacter.streamingResponse;
-
+        if (repliesToGenerate > 1) {
+          console.log("Disabling streaming response for multiple replies");
+          getStreamingResponse = false;
+        }
         let result = undefined;
         let apiTokenUsage;
 
@@ -4899,6 +4922,8 @@
           if (!(modelNoTemperatureSupport)) {
             data.temperature = replyingCharacter.temperature ?? 0.7;
           }
+          data.n = repliesToGenerate;
+
           if(replyingCharacter.topP) data.top_p = replyingCharacter.topP;
           if(replyingCharacter.frequencyPenalty) data.frequency_penalty = replyingCharacter.frequencyPenalty;
           if(replyingCharacter.presencePenalty) data.presence_penalty = replyingCharacter.presencePenalty;
@@ -4962,7 +4987,15 @@
             if(json?.usage) {
               apiTokenUsage = {prompt:json?.usage.prompt_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
             }
-            result = json?.choices?.[0].message.content;
+            const resultsReturned = json?.choices?.length;
+            if (allowMultipleReplies) {
+              result = new Array();
+              for (let i = 0; i < json?.choices?.length; i++) {
+                result.push(sanitizeBotMessage(json?.choices?.[i].message.content));
+              }
+            } else {
+              result = sanitizeBotMessage(json?.choices?.[0].message.content);
+            }
           }
 
         } else {
@@ -5042,7 +5075,7 @@
             if(json?.usage) {
               apiTokenUsage = {prompt:json?.usage.prompt_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
             }
-            result = json?.choices?.[0].text.trim();
+            result = sanitizeBotMessage(json?.choices?.[0].text.trim());
           }
         }
 
@@ -5051,11 +5084,6 @@
         }
         
         onProgressMessage({message:"finished"});
-
-        // sometimes the gpt-turbo / chat models prefix messages with "characterName:"
-        if(result && result.startsWith(`${replyingCharacterName}:`)) {
-          result = result.slice(replyingCharacterName.length+1).trim();
-        }
 
         clearInterval(abortCheckInterval);
 
@@ -5429,7 +5457,7 @@
 
       let lastBotReplyTime = 0;
       let botIsCurrentlyReplying = false;
-      async function doBotReplyIfNeeded({forceReply=false, replyInstruction=null, signals=null, result={}, characterOverride=null, expectsReply=undefined}={}) {
+      async function doBotReplyIfNeeded({forceReply=false, replyInstruction=null, signals=null, result={}, characterOverride=null, expectsReply=undefined, allowMultipleReplies=false}={}) {
         while(Date.now()-lastBotReplyTime < 1000) {
           await delay(200); // don't reply too fast in case of infinite bot reply loop (e.g. due to custom code stuff)
         }
@@ -5523,7 +5551,7 @@
           }
 
           const onProgressMessage = (e) => messageEl.querySelector(".statusMessage").innerHTML=e.message;
-          const {message, memoryIdBatchesUsed, loreIdsUsed, summaryHashUsed, memoryQueriesUsed, messageIdsUsed} = await getBotReply({messages, replyingCharacter:character, threadId, replyInstruction, onProgressMessage, onStreamingReplyChunk, signals}).catch(e => {
+          const {message, memoryIdBatchesUsed, loreIdsUsed, summaryHashUsed, memoryQueriesUsed, messageIdsUsed} = await getBotReply({messages, replyingCharacter:character, threadId, replyInstruction, onProgressMessage, onStreamingReplyChunk, allowMultipleReplies, signals}).catch(e => {
             if(e.name !== "AbortError") {
               alert("There was an error during doBotReplyIfNeeded:\n\n"+e.stack);
             }
@@ -5548,13 +5576,29 @@
 
           messageObj.expectsReply = expectsReply;
           
-          // if `message` is not a string, it means the bot failed to reply, so delete the message
-          if(typeof message !== "string" && message) { // I've added `&& message` because I think with streaming enabled, it could be an empty string even though there was an error? no harm either way.
-            messageEl.remove();
+          let shouldAddMessage = true;
+          if (Array.isArray(message)) {
+            const repliesReturned = message.length;
+            if (repliesReturned < 1) {
+              debugger;
+              shouldAddMessage = false;
+            } else {
+              messageObj.message = message[0];
+              result.message = message[0];
+              for (let i = 1; i < repliesReturned; i++) {
+                messageObj.variants.push(message[i]);
+              }
+            }
+          } else if (typeof message !== "string" && message) { // I've added `&& message` because I think with streaming enabled, it could be an empty string even though there was an error? no harm either way.
+            shouldAddMessage = false;
           } else {
             messageObj.message = message;
             result.message = message;
+          }
 
+          if(!shouldAddMessage) {
+            messageEl.remove();
+          } else {
             messageObj.id = await addMessageToDb(messageObj);
             messageEl.dataset.id = messageObj.id;
 
@@ -5649,7 +5693,7 @@
 
           const onProgressMessage = (e) => messageEl.querySelector(".statusMessage").innerHTML=e.message;
 
-          let botReplyOpts = {messages:contextMessages, threadId, signals, onProgressMessage, onStreamingReplyChunk};
+          let botReplyOpts = {messages:contextMessages, threadId, signals, onProgressMessage, onStreamingReplyChunk, allowMultipleReplies:true};
           if(opts.modelNameOverride) botReplyOpts.modelNameOverride = opts.modelNameOverride;
           if(messageObj.instruction) botReplyOpts.replyInstruction = messageObj.instruction;
           if(messageObj.characterId !== threadCharacter.id) {
@@ -5677,9 +5721,22 @@
           messageObj.messageIdsUsed = messageIdsUsed;
 
           if(message) {
-            messageObj.variants[messageObj.variants.findIndex(v => v===null)] = messageObj.message;
-            messageObj.variants.push(null);
-            messageObj.message = message;
+            if (Array.isArray(message)) {
+              let numReplies = message.length;
+              if (numReplies < 1) {
+                throw new Error("Unexpectedly received no replies while regenerating message");
+              }
+              messageObj.variants[messageObj.variants.findIndex(v => v===null)] = messageObj.message;
+              messageObj.variants.push(null);
+              messageObj.message = sanitizeBotMessage(message[0]);
+              for(let i = 1; i < numReplies; i++) {
+                messageObj.variants.push(sanitizeBotMessage(message[i]));
+              }
+            } else {
+              messageObj.variants[messageObj.variants.findIndex(v => v===null)] = messageObj.message;
+              messageObj.variants.push(null);
+              messageObj.message = sanitizeBotMessage(message);
+            }
 
             let shouldScrollDown = messageFeedIsNearBottom();
             let newMessageEl = await addMessageToFeed(messageObj, {inPlaceOf:messageEl});
@@ -6366,6 +6423,7 @@
           let characterId = thread.characterId;
           let threadCharacter = await db.characters.get(characterId);
           let message = $.messageInput.value;
+          let repliesToGenerate = Number($.repliesPerSendMenu.value);
 
           // This use used to detect if the browser is not allowing persistent storage, even if the user has been using the app for quite a while.
           // Can't just use e.g. message count because user could have just imported a bunch of messages.
@@ -6394,7 +6452,7 @@
               // $.messageInput.value = "";
 
               if(message.trim() === "/ai") {
-                await doBotReplyIfNeeded({forceReply:true, expectsReply:false});
+                await doBotReplyIfNeeded({forceReply:true, expectsReply:false, allowMultipleReplies:true});
               } else {
                 let replyInstruction = message.replace(/^\/ai /, "").trimStart();
                 // extract char name and ID from start of message if it's present
@@ -6409,7 +6467,7 @@
                   }
                   replyInstruction = replyInstruction.replace(/^@([^#]+)#([0-9]+)/, "").trim() || null;
                 }
-                await doBotReplyIfNeeded({forceReply:true, replyInstruction, characterOverride, expectsReply:false});
+                await doBotReplyIfNeeded({forceReply:true, replyInstruction, characterOverride, expectsReply:false, allowMultipleReplies:true});
               }
 
             } else if(message.trim() === "/user" || message.trim().startsWith("/user ")) {
@@ -6795,7 +6853,7 @@
                 $.messageInput.value = lastLineCommand;
                 await sendButtonClickHandler();
               } else {
-                await doBotReplyIfNeeded(); // note that we can't just pass the replyInstruction here because doBotReplyIfNeeded can get called in the process of executing triggerMessageActionCustomCodeEvent, so we use the global instructionForNextBotReply instead
+                await doBotReplyIfNeeded({allowMultipleReplies:true}); // note that we can't just pass the replyInstruction here because doBotReplyIfNeeded can get called in the process of executing triggerMessageActionCustomCodeEvent, so we use the global instructionForNextBotReply instead
               }
             }
           } catch(e) {
