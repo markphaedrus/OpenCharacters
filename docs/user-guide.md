@@ -1,3 +1,5 @@
+# User Guide
+
 This will be more organised at some point, but for now it's just going to be a list of questions I've answered on the Discord server.
 
 ## Memories

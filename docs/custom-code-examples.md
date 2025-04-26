@@ -1,4 +1,6 @@
-# Add a "refinement" step to the messages that your character generates
+# Custom code ideas
+
+## Add a "refinement" step to the messages that your character generates
 
 After your character generates a message, the message will be edited by GPT according to your instructions. Just edit the "include more emojis..." instruction text to something else, and then paste this script in the custom code input box of the advanced character options.
 
@@ -27,7 +29,8 @@ Please rewrite this message to include more emojis. Respond with only the rewrit
 });
 ```
 
-# Prevent character from taking actions on behalf of you during roleplaying
+## Prevent character from taking actions on behalf of you during roleplaying
+
 ```js
 oc.thread.on("MessageAdded", async function () {
   let lastMessage = oc.thread.messages.at(-1);
@@ -46,17 +49,17 @@ oc.thread.on("MessageAdded", async function () {
 });
 ```
 
-# Append image based on predicted facial expression of the message
+## Append image based on predicted facial expression of the message
 
 This example adds an image/GIF to each message to visually display the facial expression of the character, like in **[this example character][append facial expression image nick wilde]**:
 
-<img src="https://user-images.githubusercontent.com/1167575/225869887-03c450ec-b10a-4b81-9bbc-90a9eb928232.png" height="400">
+![Nick Wilde conversation](https://user-images.githubusercontent.com/1167575/225869887-03c450ec-b10a-4b81-9bbc-90a9eb928232.png)
 
 In the code below:
 
 * `oc.thread.on("MessageAdded", ...)` is used to trigger the code
 * `oc.getChatCompletion` is used to classify the messages that are added into one of the facial expressions that you've given
-* `<!--hidden-from-ai-start-->...<!--hidden-from-ai-end-->` is used to hide the appended images from the AI, so it doesn't get confused and start trying to make up its own image URLs based on the pattern that it observes in previous messages. **Edit**: There now exists the [`oc.messageRenderingPipeline`](https://github.com/josephrocca/OpenCharacters/blob/main/docs/custom-code.md) feature, which is probably a better approach for this sort of thing.
+* `<!--hidden-from-ai-start-->...<!--hidden-from-ai-end-->` is used to hide the appended images from the AI, so it doesn't get confused and start trying to make up its own image URLs based on the pattern that it observes in previous messages. **Edit**: There now exists the [`oc.messageRenderingPipeline`](custom-code.md) feature, which is probably a better approach for this sort of thing.
 
 You can replace the `<expression>: <url>` list with your own.
 
@@ -143,12 +146,12 @@ console.log("questionText:", questionText);
 
 ```
 
-
-# Randomly choose a character from a large, externally-hosted text file
+## Randomly choose a character from a large, externally-hosted text file
 
 There was a question on the Discord that asked how they could compile a list of thousands of characters, and then use some custom code to randomly choose a character when a user first opens **[the character share link](https://tinyurl.com/dthzwjb2)** and starts a conversation.
 
 Here's some example code for this:
+
 ```js
 // only choose a random character if we haven't already chosen one (as indicated by a filled-in role instruction). So if you want to re-roll a character, you can delete its instruction.
 if(!oc.character.roleInstruction) {
@@ -164,36 +167,42 @@ if(!oc.character.roleInstruction) {
   oc.character.avatarUrl = c[2];
 }
 ```
+
 To create your own character list text file, you'll need to sign up for a Github account, and then click the "+" sign in the top right and click "Create gist...", then once you've created your "gist" (it's just a text file), click the "raw" button to get the direct URL to the text file. Then paste it in place of this example code, and then put that code in the "custom code" section.
 
-Here's what the URL should look like: https://gist.githubusercontent.com/josephrocca/93556a5a1483242b68790f58216e8ba9/raw/30a7e9d605488a4969f78fc665dde0009267870a/character-list.txt
+Here's what the URL should look like: <https://gist.githubusercontent.com/josephrocca/93556a5a1483242b68790f58216e8ba9/raw/30a7e9d605488a4969f78fc665dde0009267870a/character-list.txt>
 
 I.e. the URL should have `/raw/` in it, and it should lead to a plain text page (i.e. no "Github" header, or anything like that).
 
 As you can see, the syntax/format of the text file is:
-```
+
+```text
 character name ; franchise ; avatar url
 character name ; franchise ; avatar url
 ...
 ```
 
 You can add more properties like:
-```
+
+```text
 character name ; franchise ; avatar url ; personality
 character name ; franchise ; avatar url ; personality
 ...
 ```
-And to reference `personality`, you'd use `${c[3]}` in the code. GPT-4 should be able to help you customise it if you paste the explanation that I've written here. You can also change anything else about the character with `oc.character.propertyNameYouWantToChange` - see here: https://github.com/josephrocca/OpenCharacters/blob/main/docs/custom-code.md
+
+And to reference `personality`, you'd use `${c[3]}` in the code. GPT-4 should be able to help you customise it if you paste the explanation that I've written here. You can also change anything else about the character with `oc.character.propertyNameYouWantToChange` - see here: <custom-code.md>
 
 (BTW, the reason you'll want to sign up for Github is because it's one of the few places that you can create a simple text file that can be downloaded from another webpage. Normally the JS code on one page can't download some files from a different website due to a thing called "CORS". On top of this, Github is just really reputable and can be trusted to host your file forever. If you use some random pastebin type site there's a 100% chance you file will eventually either be deleted, or be redirected to some ad-filled embedded version. Github is hands-down the best place to host text files.)
 
-# Give a character the ability to execute Python code
+As an alternative to GitHub, you can use a local server, if and only if it has CORS support. For example, the [Simple Web Server](https://simplewebserver.org) app for Windows, Mac and Linux has CORS support.
 
-This example has its own doc: https://github.com/josephrocca/OpenCharacters/blob/main/docs/running-python-code.md
+## Give a character the ability to execute Python code
+
+This example has its own doc: <running-python-code.md>
 
 Also see the "starter character" called "Python Coder".
 
-# Let your character see the contents of URLs that are in your messages
+## Let your character see the contents of URLs that are in your messages
 
 This will automatically download the content of any URLs that are in your messages, and put that content within a (hidden-from-user) message that the AI is able to see.
 
@@ -237,9 +246,10 @@ oc.thread.on("MessageAdded", async function ({message}) {
 });
 ```
 
-# Allow a character to update its own personality/reminder
+## Allow a character to update its own personality/reminder
 
 After your character generates a message, the message will be used GPT to update the character's `reminderMessage`. You can edit the prompt text to your liking, and then paste this script in the custom code input box of the advanced character options.
+
 ```js
 oc.thread.on("MessageAdded", async function() {
   let lastMessage = oc.thread.messages.at(-1);
@@ -269,18 +279,20 @@ Please rewrite the personality text to take into account their latest message. R
   oc.character.reminderMessage = nonEditablePart + "\n---\n" + response.trim();
 });
 ```
+
 For the above code to work, your reminder message should be structured with a `---` between the non-editable and editable stuff, like this:
-```
+
+```text
 Your regular reminder message content.
 ---
 The character's self-editable stuff.
 ```
 
-# Give you character a voice
+## Give your character a voice
 
-See the code for the text-to-speech plugin: https://github.com/josephrocca/OpenCharacters/blob/main/plugins/tts/main.js
+See the code for the text-to-speech plugin: <https://github.com/josephrocca/OpenCharacters/blob/main/plugins/tts/main.js>
 
-# Allow your character to edit its own settings
+## Allow your character to edit its own settings
 
 See the starter character called "Fire Alarm Bot".
 

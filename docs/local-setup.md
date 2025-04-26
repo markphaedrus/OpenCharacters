@@ -1,11 +1,12 @@
 # Running OpenCharacters on your own machine
-Note that when you load up OpenCharacters via the usual URL, it *is running locally on your machine* - there is no server other than the `github.io` server that sends you the HTML/JavaScript files. Once the page has loaded, it's running completely locally on your machine, other than the requests to the OpenAI API, which are unavoidably non-local either way, unless you're using [a non-OpenAI local model](https://github.com/josephrocca/OpenCharacters/blob/main/docs/custom-models.md).
+
+Note that when you load up OpenCharacters via the usual URL, it *is running locally on your machine* - there is no server other than the `github.io` server that sends you the HTML/JavaScript files. Once the page has loaded, it's running completely locally on your machine, other than the requests to the OpenAI API, which are unavoidably non-local either way, unless you're using [a non-OpenAI local model](docs/custom-models.md).
 
 But if you want to also *serve* the HTML/JavaScript files from your own machine, you can use this guide. This might be handy if you want to completely opt-in to any updates to OpenCharacters, instead of receiving updates automatically when I update this code repository.
 
-1. [Download this project as a zip file](https://github.com/josephrocca/OpenCharacters/archive/refs/heads/main.zip) and unzip it
+1. Use Github Desktop to clone the repository locally.
 2. Install the [Simple Web Server](https://simplewebserver.org/) application
-3. Launch the app and select the unzipped folder [as shown in the intro video](https://www.youtube.com/watch?v=AK6swHiPtew)
+3. Launch the app and select the repository folder [as shown in the intro video](https://www.youtube.com/watch?v=AK6swHiPtew)
 4. **Important**: Once you select the folder and switch on the server with the toggle, it'll show you a URL like `http://127.0.0.1:8887`, but you should change it to `http://localhost:8887` because otherwise (due [very strange engineering choices](https://stackoverflow.com/questions/43895390/imgur-images-returning-403) at Imgur HQ based on the "referrer" header), Imgur images won't load. So just swap the `127.0.0.1` part to `localhost` and that'll fix image loading problems.
 5. Visit the URL in your browser.
 
@@ -28,5 +29,6 @@ If you want to use the command line, I'd recommend Deno because it allows you to
 deno run --allow-net=0.0.0.0:4507 --allow-read=. https://deno.land/std@0.180.0/http/file_server.ts
 # Now open http://localhost:4507 in your browser.
 ```
+
 * The `--allow-net=0.0.0.0:4507` part means "give this script access to the internet, but *only* to `0.0.0.0:4507` (i.e. `localhost:4507`) so it can serve the files there"
 * The `--allow-read=.` means "give this script the ability to read files on my filesystem, but *only* `.` - i.e. only the files in the current folder/directory"

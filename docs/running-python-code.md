@@ -1,15 +1,19 @@
 # Running Python Code
-You can use [Pyodide](https://github.com/pyodide/pyodide) to run Python in the browser. Note that not all Python packages will run in the Pyodide runtime yet, but support for more Python functionality gets added with each new version. You can request support for packages/features [here](https://github.com/pyodide/pyodide/issues), but be sure to search for existing issues first. 
+
+You can use [Pyodide](https://github.com/pyodide/pyodide) to run Python in the browser. Note that not all Python packages will run in the Pyodide runtime yet, but support for more Python functionality gets added with each new version. You can request support for packages/features [here](https://github.com/pyodide/pyodide/issues), but be sure to search for existing issues first.
 
 To get started with Pyodide, try pasting this code in the custom code input box in the advanced area of the character editor:
+
 ```js
 import "https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js";
 let pyodide = await loadPyodide();
 await pyodide.loadPackage("micropip");
 ```
+
 Now you can use `await pyodide.runPythonAsync("1+2+3")` to run code, and within our python code we can run `await micropip.install("numpy")` to install stuff.
 
 For example, here's some custom code that you can paste into your character's custom code box which will look for code blocks in their messages, and execute them:
+
 ```js
 import "https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js";
 
