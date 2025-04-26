@@ -477,12 +477,15 @@
             <button type="button" title="Settings" id="settingsButton" class="appOptionButton">⚙️ settings</button>
             <!-- <button id="statsButton" class="appOptionButton" style="margin-left: 0.5rem; width: 2rem;">📊</button> -->
           </div>
-          <div style="display: flex;">
+          <div style="display:flex;">
             <button type="button" title="Clear all data" id="clearDataButton" class="appOptionButton" style="width: 4rem;">🗑️</button>
             <button type="button" title="Export all data" id="exportDataButton" class="appOptionButton" style="margin-left: 0.5rem; margin-right: 0.5rem;">💾 export</button>
             <button type="button" title="Options" class="appOptionButton" style="position:relative;">📁 import<input title="Import data file" id="importDataFileInput" style="position:absolute; top:0; left:0; right:0; bottom:0; opacity:0; cursor:pointer;" type="file"></button>
           </div>
-          <button title="About this project" type="button" onclick="window.open('https://github.com/josephrocca/OpenCharacters/blob/main/README.md')" class="appOptionButton">❓ about this project <span style="font-size:0.6rem; opacity:0.5;">001</span></button>
+          <div style="display:flex;">
+            <button type="button" title="Documentation" type="button" id="documentationButton" class="appOptionButton">❓ Documentation</button>
+            <button type="button" title="Release notes" type="button" id="releaseNotesButton" style="margin-left: 0.5rem; width:fit-content;" class="appOptionButton">Release notes</button>
+          </div>
         </div>
       </div>
 
@@ -615,6 +618,10 @@
       if(!window.isSecureContext) {
         alert("Hey, looks like you're trying to host this locally, but you have hosted it in an insecure context - i.e. you're serving it on HTTP instead of HTTPS. Unfortunately there are a bunch of features that are disabled on HTTP connections for modern browsers. localhost is treated as a secure context for development purposes, but if you want to server it on the internet, then I recommend using Cloudflare - you just switch your domain's nameservers to them and then it's basically a button click and you've got HTTPS. Much easier than setting up your own certificate stuff.");
       }
+
+      const projectURL = 'https://github.com/markphaedrus/OpenCharacters';
+      const projectHomePageURL = projectURL + '/blob/main/README.md';
+      const projectDocsURL = projectURL + '/blob/main/docs';
 
       $.messageFeed.addEventListener("keydown", async function(e) {
         debugger;
@@ -895,6 +902,57 @@
       if(dbLoadingModal) dbLoadingModal.delete();
 
       console.log("Database ready.");
+
+      // Release Notes
+      // These are messages automatically displayed to the user when they load the page, if the user has not yet seen them.
+      // Release notes should be kept in chronological order, oldest-first, in the array. ADD NEW RELEASE NOTES TO THE END.
+      // DO NOT DELETE RELEASE NOTES UNLESS YOU'RE RESETTING THE NOTES COMPLETELY. (See releaseNotesSeries below for how to reset the notes.)
+      // If an individual release note turns out to be wrong or obsolete, change it to the empty string and it will be skipped.
+      const releaseNotesHTML = [
+        "If you are using non-OpenAI models like HuggingFace, be aware that the properties used by OpenCharacters have changed slightly. See <a target='_blank' href='docs/custom-code.md'>the Custom Models documentation</a> for details.",
+        "OpenCharacters now supports generating multiple reply variants at once. The menu next to the Send button controls how many reply variants are generated each time you use the Send or 🔁 buttons. This can save a lot of time and money if you frequently use the 🔁 button. For example, if you generate 5 reply variants at once, you'll only be charged once for the length of the existing conversation, though you'll still be charged for the length of all 5 replies.",
+      ];
+
+      // If you ever want to do a full documentation update and delete the existing release notes, then do the following:
+      // * Change releaseNotesHTML to an empty array.
+      // * Increment the value of releaseNotesSeries.
+      // This will reset each user's local database to reflect that they haven't seen any release notes.
+      const releaseNotesSeries = 0;
+
+      async function showReleaseNotes(forceAllReleaseNotes) {
+        let lastReleaseNoteShown = -1;
+        if (!forceAllReleaseNotes) {
+          lastReleaseNoteShown = (await db.misc.get("lastReleaseNoteShown"))?.value || -1;
+        }
+        const lastReleaseNotesSeries = (await db.misc.get("lastReleaseNotesSeries"))?.value || 0;
+        if (lastReleaseNotesSeries != releaseNotesSeries) {
+          lastReleaseNoteShown = -1;
+        }
+        const releaseNotesCount = releaseNotesHTML.length;
+        if (lastReleaseNoteShown < releaseNotesCount) {
+          let releaseNotes = "<h1>OpenCharacters release notes:</h1>";
+          if (lastReleaseNoteShown == -1) {
+            releaseNotes += "<p>Here are all the release notes for OpenCharacters -- things that might not be reflected in the documentation yet.</p>";
+          } else {
+            releaseNotes += "<p>It looks like there's been a recent update to OpenCharacters. Here are the new release notes you haven't seen.</p>";
+          }
+          releaseNotes += "<p><i>Don't panic!</i> If you don't understand what any of these release notes are saying, they don't apply to you.</p><ul>";
+          for (let i = lastReleaseNoteShown + 1; i < releaseNotesCount; i++) {
+            releaseNotes += ("<li>" + releaseNotesHTML[i] + "</li>");
+          }
+          releaseNotes += "</ul>";
+          await prompt2({
+            releaseNotes: {type: "none", height: "fit-content", html: releaseNotes},
+          }, {
+            cancelButtonText:null,
+            submitButtonText:"OK"
+          });
+          await db.misc.put({key:"lastReleaseNotesSeries", value:releaseNotesSeries});
+          await db.misc.put({key:"lastReleaseNoteShown", value:releaseNotesCount});
+        }
+      }
+
+      showReleaseNotes(false);
 
       function upgradeCharacterInitialMessagesArrayIfNeeded(character) {
         // upgrade from the ["foo", "bar"] format to [{author:"user", content:"foo"}, {author:"ai", content:"bar"}]
@@ -1237,6 +1295,9 @@
         if (modelObj === undefined) { throw new Error(`Unknown model ${modelName}`); }
         return modelObj.multipleResponseSupport;
       }
+
+      $.documentationButton.addEventListener("click", async function() { window.open(projectHomePageURL); });
+      $.releaseNotesButton.addEventListener("click", async function() { showReleaseNotes(true); });
 
       // export data if they click export button
       $.exportDataButton.addEventListener("click", async function() {
@@ -2036,7 +2097,7 @@
           }
 
           let result = await prompt2({
-            reminderMessage: {label: "Edit the character's reminder message. <b>Note:</b> This text is placed in a 'hidden' message right before the character responds. Be careful that your reminder message doesn't 'throw off' the conversation. You can try putting your reminder message in parentheses like (Reminder: ...) or (Note: ...) or (Thought: ...) or (OOC: ...) if your character is responding to the reminder message. The <a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/instruction-and-reminder.md' target='_blank'>advanced syntax</a> may also be useful.", height:"fit-content", type: "text", defaultValue: reminderMessage, focus:true, placeholder: "Enter a reminder message here. A reminder message is a 'system' message that helps remind/command/instruct the AI on how to respond."}
+            reminderMessage: {label: `Edit the character's reminder message. <b>Note:</b> This text is placed in a 'hidden' message right before the character responds. Be careful that your reminder message doesn't 'throw off' the conversation. You can try putting your reminder message in parentheses like (Reminder: ...) or (Note: ...) or (Thought: ...) or (OOC: ...) if your character is responding to the reminder message. The <a href='${projectDocsURL}/instruction-and-reminder.md' target='_blank'>advanced syntax</a> may also be useful.`, height:"fit-content", type: "text", defaultValue: reminderMessage, focus:true, placeholder: "Enter a reminder message here. A reminder message is a 'system' message that helps remind/command/instruct the AI on how to respond."}
           });
           // debugger;
           if(result) {
@@ -2924,9 +2985,9 @@
         const result = await prompt2({
           header: { html: opts.editingExistingCharacter ? `<div style="border-radius:3px;font-size: 0.8rem;padding: 0.5rem;border: 1px solid var(--border-color);">You're currently <b>editing</b> an existing character named '${existingCharacter.name}'.</div>` : "", type:"none" },
           name: { label: "🪪 Character name:", type:"textLine", placeholder: "Sammy", defaultValue: defaultValues.name || "", validationPattern:characterNameValidationPattern },
-          roleInstruction: { label: "🎭 Instruction/role/personality (<a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/instruction-and-reminder.md' target='_blank'>advanced</a>)", infoTooltip:"This message defines the personality or 'role' that the AI will take during the chat. Every request to the API will include this as the first message. If you later decide to edit this, all existing and new threads will be immediately updated. This message does not get summarized by the summarization algorithm - it will always be present as the first message.", type:"text", height:"fit-content", placeholder: "You are Sammy, an opinionated, friendly assistant. You have opinions.", defaultValue: defaultValues.roleInstruction || "" },
-          reminderMessage: { label: "💭 Reminder message - an invisible system message that is placed before every AI response (<a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/instruction-and-reminder.md' target='_blank'>advanced</a>)", infoTooltip:"This message is inserted as a reminder at the end of the chat right before each AI response. This will always be the last/most-recent message that the AI sees when writing its response. If you later decide to edit this, all existing and new threads will be immediately updated. This message is not seen/summarized by the summarization algorithm - it will always be present as the final message.", height:"fit-content", minHeight:"3rem", type:"text", placeholder: "Stay in character! Sammy will now respond without breaking character.", defaultValue: defaultValues.reminderMessage || "" },
-          initialMessagesText: { label: `💬 Initial chat messages (optional). Useful for extra alignment to character. Follow the format explained <a href="https://github.com/josephrocca/OpenCharacters/blob/main/docs/initial-messages.md" target='blank'>here</a>.`, infoTooltip:"During the initialization of every new thread with this character, these messages will be created and placed at the start of the thread. Note that the summarization algorithm will eventually summarize these messages - so they won't stay around forever (unlike the instruction and reminder messages, which *do* stay around forever). Also note that if you edit the initial messages, only *new* threads will have the updated initial messages. In other words, once a chat thread has been created, the initial messages that are added to a thread during init 'belong' to that thread, not to the character.", type:"text", height:"fit-content", placeholder: "[USER]: Hey Sammy, do you have opinions?\n[SYSTEM]: The next message will include an emoji.\n[AI]: Yes! I have lots of opinions. 🤔\n[SYSTEM; hiddenFrom=ai]: The AI can't see this message. Useful for user instructions.", defaultValue: initialMessagesText ?? "" },
+          roleInstruction: { label: `🎭 Instruction/role/personality (<a href='${projectDocsURL}/instruction-and-reminder.md' target='_blank'>advanced</a>)`, infoTooltip:"This message defines the personality or 'role' that the AI will take during the chat. Every request to the API will include this as the first message. If you later decide to edit this, all existing and new threads will be immediately updated. This message does not get summarized by the summarization algorithm - it will always be present as the first message.", type:"text", height:"fit-content", placeholder: "You are Sammy, an opinionated, friendly assistant. You have opinions.", defaultValue: defaultValues.roleInstruction || "" },
+          reminderMessage: { label: `💭 Reminder message - an invisible system message that is placed before every AI response (<a href='${projectDocsURL}/instruction-and-reminder.md' target='_blank'>advanced</a>)`, infoTooltip:"This message is inserted as a reminder at the end of the chat right before each AI response. This will always be the last/most-recent message that the AI sees when writing its response. If you later decide to edit this, all existing and new threads will be immediately updated. This message is not seen/summarized by the summarization algorithm - it will always be present as the final message.", height:"fit-content", minHeight:"3rem", type:"text", placeholder: "Stay in character! Sammy will now respond without breaking character.", defaultValue: defaultValues.reminderMessage || "" },
+          initialMessagesText: { label: `💬 Initial chat messages (optional). Useful for extra alignment to character. Follow the format explained <a href='${projectDocsURL}/initial-messages.md" target='blank'>here</a>.`, infoTooltip:"During the initialization of every new thread with this character, these messages will be created and placed at the start of the thread. Note that the summarization algorithm will eventually summarize these messages - so they won't stay around forever (unlike the instruction and reminder messages, which *do* stay around forever). Also note that if you edit the initial messages, only *new* threads will have the updated initial messages. In other words, once a chat thread has been created, the initial messages that are added to a thread during init 'belong' to that thread, not to the character.", type:"text", height:"fit-content", placeholder: "[USER]: Hey Sammy, do you have opinions?\n[SYSTEM]: The next message will include an emoji.\n[AI]: Yes! I have lots of opinions. 🤔\n[SYSTEM; hiddenFrom=ai]: The AI can't see this message. Useful for user instructions.", defaultValue: initialMessagesText ?? "" },
           avatarUrl: { label: "👤 Avatar URL (png/jpg/etc):", type:"textLine", placeholder: "(optional)", defaultValue: defaultValues.avatar?.url || "" },
           modelName: { hidden:true, label: "🤖 Model name:", infoTooltip:"", type:"select", options:[{content:"GOOD/CHEAP", value:"good"}, {content:"GREAT/EXPENSIVE", value:"great"}, ...broadlyAvailableModels.filter(m => m.type === "completion" || m.type === "chat-completion").map(m => ({value:m.name, content:getMenuLabelForModel(m)}))], defaultValue: defaultValues.modelName || "good" },
           maxTokensPerMessage: { hidden:true, label: "📏 Max tokens per message:", infoTooltip:"This can be used to limit the length of the AI's responses. A 'token' is basically a word - 500 tokens is about 400 words in most tokenizers. Leave this blank to allow unlimited tokens to be generated per message. Note that you can also control the length of the AI's responses in the reminder message by saying something like 'Your response should be at most 3 sentences' or whatever.", type:"textLine", defaultValue:defaultValues.maxTokensPerMessage || "" },
@@ -2941,8 +3002,8 @@
           userCharacterAvatarUrl: { hidden:true, label: "User's avatar. This overrides the user's default avatar when chatting to this character.", type:"textLine", defaultValue: defaultValues.userCharacter?.avatar?.url || "" },
           // initialThreadMemories: { hidden:true, show:d=>d.autoGenerateMemories!=="none", label: "Initial thread-specific memories. The character will create memories based on the chat, but you can add some starter memories/lore here.", infoTooltip:"Manually-written memories can be used as 'dynamic' instruction/role/reminders that engage when relevant. This saves you from having to pack too much text into your instruction/reminder, which will 'eat up' your context, which means the AI will be able to see fewer recent messages, and summarization will have to be done more often.", type:"text", defaultValue: defaultValues.textEmbeddingModelName ?? "" },
           temperature: { hidden:true, label: "🌡️ Creativity ('temperature'). Choose a value between 0 and 2. Higher values will make the output more random, while lower values will make it more focused and deterministic.", infoTooltip:"People seem to get good results between 0.7 and 1.2 - higher values may sacrifice some 'correctness' but should result in more 'imagination'. Not supported by all models.", type:"textLine", defaultValue: defaultValues.temperature ?? 0.85 },
-          loreBookUrlsText: { hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: "📖 Lorebook URLs - one per line. Use <a href='https://rentry.org' target='_blank'>rentry.org</a> or similar. Should be a url to the 'raw' text file, where your lore entries are separated by blank lines. For changes to propagate to <b>existing</b> threads, you need to use the <b>/lore</b> command and click the reload button. Visit <a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/memories-and-lore.md' target='_blank'>this page</a> to learn more.", type:"text", height:"fit-content", defaultValue: loreBookUrlsText },
-          customCode: { hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: "🧑‍💻 Custom JavaScript code. This allows you to e.g. give your bot access to the internet. Visit <a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/custom-code.md' target='_blank'>this page</a> to learn more.", type:"text", height:"fit-content", defaultValue: defaultValues.customCode ?? "" },
+          loreBookUrlsText: { hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: `📖 Lorebook URLs - one per line. Use <a href='https://rentry.org' target='_blank'>rentry.org</a> or similar. Should be a url to the 'raw' text file, where your lore entries are separated by blank lines. For changes to propagate to <b>existing</b> threads, you need to use the <b>/lore</b> command and click the reload button. Visit <a href='${projectDocsURL}/memories-and-lore.md' target='_blank'>this page</a> to learn more.`, type:"text", height:"fit-content", defaultValue: loreBookUrlsText },
+          customCode: { hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: `🧑‍💻 Custom JavaScript code. This allows you to e.g. give your bot access to the internet. Visit <a href='${projectDocsURL}/custom-code.md' target='_blank'>this page</a> to learn more.`, type:"text", height:"fit-content", defaultValue: defaultValues.customCode ?? "" },
           systemCharacterName: { hidden:true, label: "System's name:", type:"textLine", defaultValue: defaultValues.systemCharacter?.name || "" },
           systemCharacterAvatarUrl: { hidden:true, label: "System's avatar:", type:"textLine", defaultValue: defaultValues.systemCharacter?.avatar?.url || "" },
         }, {submitButtonText: opts.submitButtonText || "save character", showHiddenInputsText: "show advanced options"});
@@ -6546,7 +6607,7 @@
               let defaultValue = "";
               while(1) {
                 let result = await prompt2({
-                  messagesText: {label: "Add messages in the same format as <a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/initial-messages.md' target='blank'>initial messages</a> to add them to this thread:", type: "text", height:"fit-content", defaultValue: "", placeholder:"[USER]: Here's a user message.\n[SYSTEM]: Here's a system message.\n[AI]: Here's an AI message.\n[USER]: Messages can be multi-line\nlike this.", focus:true},
+                  messagesText: {label: `Add messages in the same format as <a href='${projectDocsURL}/initial-messages.md' target='blank'>initial messages</a> to add them to this thread:`, type: "text", height:"fit-content", defaultValue: "", placeholder:"[USER]: Here's a user message.\n[SYSTEM]: Here's a system message.\n[AI]: Here's an AI message.\n[USER]: Messages can be multi-line\nlike this.", focus:true},
                 });
                 if(!result) break;
                 let messages = parseMessagesFromTextFormat(result.messagesText);
@@ -8477,7 +8538,7 @@
           userAvatarUrl: {label: "Your avatar URL:", type: "textLine", placeholder: "(optional)", defaultValue: userAvatarUrlOriginal},
           openAiApiKey: {label: "OpenAI API secret key (<a href='https://platform.openai.com/account/api-keys' target='_blank'>from here</a>):", type: "textLine", placeholder:"sk-...", defaultValue: openAiApiKeyOriginal},
           showInlineReminder: {hidden:true, label: "Show 'inline' reminder edit button:", type: "select", options:[{value:"yes"}, {value:"no"}], defaultValue: showInlineReminderOriginal},
-          customModelConfigs: {hidden:true, cssText:"white-space:pre; font-family:monospace;", label: "Custom model configs (<a href='https://github.com/josephrocca/OpenCharacters/blob/main/docs/custom-models.md' target='_blank'>follow this guide</a>):", type: "text", placeholder:`{name:"...", endpointUrl:"..."}\n{name:"...", endpointUrl:"...", apiKey:"..."}\n...`, defaultValue: customModelConfigsOriginal.map(o => JSON5.stringify(o)).join("\n")},
+          customModelConfigs: {hidden:true, cssText:"white-space:pre; font-family:monospace;", label: `Custom model configs (<a href='${projectDocsURL}/custom-models.md' target='_blank'>follow this guide</a>):`, type: "text", placeholder:`{name:"...", endpointUrl:"..."}\n{name:"...", endpointUrl:"...", apiKey:"..."}\n...`, defaultValue: customModelConfigsOriginal.map(o => JSON5.stringify(o)).join("\n")},
           useCORSProxy: {hidden:true, label:"Use CORS proxy when downloading lore", type: "select", options:[{value:"yes"}, {value:"no"}], defaultValue: useCORSProxyOriginal},
           customPostPageLoadMainThreadCode: {hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: "This code will be run on this page after page load. You can use it to mod the OpenCharacters UI, or to e.g. <a href='https://gist.github.com/josephrocca/a82216e2f2fdf54ad8dd79dbd4cfd625' target='_blank'>proxy all `fetch` requests</a>, or whatever. Note that there are no backwards-compatibility guarantees on the main thread UI, so your code may break eventually. <b>This code can access all your data</b> - make sure it's from a trustworthy source if you didn't write it yourself (maybe ask GPT-4 what it does if you don't know how to code and are weary). Refresh the page after saving for your code to take effect.", placeholder:"// add code here", type: "text", defaultValue: customPostPageLoadMainThreadCodeOriginal},
           showDebugInfo: {hidden:true, label:"Show debugging controls", type: "select", options:[{value:"verbose"}, {value: "brief"}, {value:"none"}], defaultValue: showDebugInfoOriginal},
@@ -8540,8 +8601,9 @@
 
         // update the user's name and avatar in the message feed:
         if($.messageFeed.offsetHeight > 0) {
+          const forceFullRender = (showDebugInfo != showDebugInfoOriginal);
           let threadId = activeThreadId;
-          await renderMessageFeed(threadId);
+          await renderMessageFeed(threadId, {forceFullRender:forceFullRender});
         }
       });
 
