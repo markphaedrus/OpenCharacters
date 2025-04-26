@@ -335,9 +335,6 @@
       #messageFeed .messageText img {
         max-width: 100%;
       }
-      #messageFeed .message .avatar {
-        
-      }
 
       #messageFeed > *:first-child {
         margin-top: 3rem;
@@ -533,21 +530,25 @@
               <div style="display:flex;">
                 <textarea id="messageInput" style="flex-grow:1; min-height:4rem; font-size:100%;" title="commands:&#10;/ai - prompt a reply from ai&#10;/ai &lt;instruction&gt; - prompt reply with instruction&#10;/ai @CharName#123 &lt;instruction&gt; - prompt reply with another character (ID=123)&#10;/user &lt;instruction&gt; - generate a user reply&#10;/sys &lt;message&gt; - reply as system&#10;/sum - open summary editor&#10;/mem - open memory editor&#10;/lore - open lore editor&#10;/lore &lt;text&gt; - add a lore entry&#10;/name &lt;name&gt; - set your name for this thread&#10;/avatar &lt;url&gt; - set your avatar image for this thread&#10;/import - add chat messages in bulk&#10;/flushembeds - flush the embedding cache that's used to determine what memories are relevant&#10;&#10;• You can add '/ai &lt;instruction&gt;' as the final line in your normal messages to instruct AI for its reply.&#10;• Double-click this text box to show input history"></textarea>
                 <div style="display:flex; flex-direction:column; margin-left:0.25rem;">
-                  <button id="sendButton" type="button" style="min-width:80px; flex-grow:1;">send</button>
+                  <button id="sendButton" type="button" style="min-width:80px; min-height: 50px; margin-bottom: 3px; flex-grow:1;">send</button>
+                  <select id="repliesPerSendMenu" title="Replies generated each time you click Send" style="margin-bottom:3px; vertical-align:middle;">
+                    <option value="1">1 reply</option>
+                    <option value="2">2 replies</option>
+                    <option value="3">3 replies</option>
+                    <option value="4">4 replies</option>
+                    <option value="5">5 replies</option>
+                    <option value="6">6 replies</option>
+                    <option value="7">7 replies</option>
+                    <option value="8">8 replies</option>
+                    <option value="9">9 replies</option>
+                  </select>
                   <div style="position:relative;">
                     <div id="threadOptionsPopup" style="position:absolute; display:none; padding:0.5rem; background:var(--background); border-radius:var(--border-radius); width:max-content; right:0; bottom:0; border:1px solid var(--border-color);">
                       <button id="addShortcutButton" type="button">✨ add shortcut</button>
                       <!-- <button id="replyLoopButton">➰ reply loop</button> -->
                     </div>
                   </div>
-                  <div style="display:flex; flex-direction:row; margin-top:2px; align-items:center;">
-                    <select id="repliesPerSendMenu" title="Responses generated each time you click Send" style="margin-right:2px; vertical-align:middle;">
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                      <option>5</option>
-                    </select>
+                  <div style="display:flex; flex-direction:row; align-items:center;">
                     <button id="threadOptionsButton" type="button" style="flex-grow:1; vertical-align:middle;">options</button>
                   </div>
                 </div>
@@ -1173,8 +1174,8 @@
         {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.50 , completion: 8.00 }},
         {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.10, completion: 1.60}},
         {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{prompt: 1.10 , completion: 4.40}},        
-        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, averageInverseDistance:1.4, tokenPricing:{prompt:0.02, completion: 0.02}},
-        {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, averageInverseDistance:4, tokenPricing:{prompt:0.10, completion: 0.10}},
+        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.4, tokenPricing:{prompt:0.02, completion: 0.02}},
+        {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:4, tokenPricing:{prompt:0.10, completion: 0.10}},
       ];
       const modelPricingLastUpdateDate = new Date("2025-04-15");
 
@@ -1215,8 +1216,9 @@
         return m.shortLabel + " ($" + m.tokenPricing.prompt.toFixed(2) + "/$" + m.tokenPricing.completion.toFixed(2) + ")";
       }
 
-      async function modelIsOpenAiModel(modelName) {
+      function modelIsOpenAiModel(modelName) {
         let modelObj = availableModels[modelName];
+        if (modelObj === undefined) { throw new Error(`Unknown model ${modelName}`); }
         return modelObj.endpointUrl.startsWith("https://api.openai.com");
       }
 
@@ -1228,6 +1230,12 @@
           thread = threadOrThreadId;
         }
         return (await modelIsOpenAiModel(thread.modelName));
+      }
+
+      function modelSupportsMultipleResponses(modelName) {
+        let modelObj = availableModels[modelName];
+        if (modelObj === undefined) { throw new Error(`Unknown model ${modelName}`); }
+        return modelObj.multipleResponseSupport;
       }
 
       // export data if they click export button
@@ -2704,6 +2712,17 @@
         await showThread(thread.id);
       }
       
+      async function updateUIForModel(modelName) {
+        if (modelSupportsMultipleResponses(modelName)) {
+          console.log(`Model ${modelName} supports multiple replies.`);
+          $.repliesPerSendMenu.style.display = "initial"; 
+        } else {
+          console.log(`Model ${modelName} does not support multiple replies.`);
+          $.repliesPerSendMenu.style.display = "none";
+          $.repliesPerSendMenu.value = 1;
+        }
+      }
+
       async function threadModelSelectorChanged() {
         console.log("Thread model changed.");
         let threadId = activeThreadId;
@@ -2711,6 +2730,7 @@
         let modelName = $.threadModelSelector.value;
         await db.threads.update(threadId, {modelName});
         await renderThreadList();
+        await updateUIForModel(modelName);
       }
 
       $.threadModelSelector.addEventListener("change", threadModelSelectorChanged);
@@ -2747,6 +2767,7 @@
         activeCharacterId = thread.characterId;
 
         $.threadModelSelector.value = thread.modelName;
+        await updateUIForModel(thread.modelName);
 
         let characterObj = await db.characters.get(thread.characterId);
 
@@ -2798,6 +2819,7 @@
           await threadModelSelectorChanged(); // this triggers the necessary db update and rerenders
         } else {
           $.threadModelSelector.value = thread.modelName;
+          await updateUIForModel(thread.modelName);
         }
 
         // thus must come before rendering the message feed because we may need to render the messages with `oc.messageRenderingPipeline`
@@ -4798,7 +4820,11 @@
           if(message._isReminder !== undefined) delete message._isReminder;
         }
 
-        onProgressMessage({message:"querying api..."});
+        if (repliesToGenerate > 1) {
+          onProgressMessage({message:`querying api for ${repliesToGenerate} responses...`})
+        } else {
+          onProgressMessage({message:"querying api..."});
+        }
 
         console.log("getBotReply - messagesArr:", messagesArr);
 
@@ -5779,7 +5805,7 @@
       }
 
       function messageFeedIsNearBottom() {
-        return $.messageFeed.scrollHeight - $.messageFeed.scrollTop - $.messageFeed.offsetHeight < 50;
+        return $.messageFeed.scrollHeight - $.messageFeed.scrollTop - $.messageFeed.offsetHeight < 400;
       }
 
       async function addMessageToFeed(originalMessageObj, opts={}) {
@@ -6242,11 +6268,12 @@
           const result = await prompt2({
             content: {label: "message:", type: "text", height:"fit-content", focus:true},
             author: {label: "author:", type: "select", options:[{value:"user"}, {value:"ai"}, {value:"system"}], defaultValue: "user"},
+            instruction: {label: "instruction:", show:(data) => data.author==="ai", type: "text", height: "fit-content"},
             hiddenFrom: {hidden:true, label: "hidden from:", type: "select", options:[{value:"user"}, {value:"ai"}, {content:"both", value:"user,ai"}, {content:"neither", value:""}], defaultValue: originalMessage.hiddenFrom.join(",")},
           });
           if(!result) return;
           let characterId = result.author === "user" ? -1 : result.author === "system" ? -2 : thread.characterId;
-          let messageObj = createMessageObj({threadId, message:result.content, characterId, hiddenFrom:result.hiddenFrom.split(",")});
+          let messageObj = createMessageObj({threadId, message:result.content, instruction:result.instruction, characterId, hiddenFrom:result.hiddenFrom.split(",")});
           
           let messages = await db.messages.where({threadId}).toArray();
           messages.sort((a,b) => a.order - b.order);
@@ -6266,17 +6293,22 @@
           if(aboveOrBelow === "above") opts.insertBefore = messageEl;
           else opts.insertAfter = messageEl;
 
-          await addMessageToFeed(messageObj, opts);
+          let newMessageEl = await addMessageToFeed(messageObj, opts);
 
           await triggerMessageActionCustomCodeEvent({threadId, eventData:{messageId:messageObj.id}, eventName:"MessageInserted"});
+
+          if ((messageObj.characterId == thread.characterId) && (messageObj.message === "")) {
+            await regenerateMessage(newMessageEl);
+          }
         }
         insertNewMessageEl.querySelector(".insertAbove").addEventListener("click", insertMessageHandler.bind(null, "above"));
         insertNewMessageEl.querySelector(".insertBelow").addEventListener("click", insertMessageHandler.bind(null, "below"));
         
+        const instructionHidden = (!!!originalMessage.instruction) || (originalMessage.author == "ai");
         let promptOpts = {
           // CAUTION: All non-none types must have a defaultValue, since we use it for change detection, below
           message: {label: "message:", type: "text", height:"fit-content", defaultValue: originalMessage.message, focus:true},
-          instruction: {hidden:!!!originalMessage.instruction, label: "instruction:", type: "text", minHeight:"2rem", defaultValue: originalMessage.instruction || ""},
+          instruction: {hidden:instructionHidden, label: "instruction:", type: "text", height: "fit-content", minHeight:"2rem", defaultValue: originalMessage.instruction || ""},
           hiddenFrom: {hidden:true, label: "hidden from:", type: "select", options:[{value:"user"}, {value:"ai"}, {content:"both", value:"user,ai"}, {content:"neither", value:""}], defaultValue: originalMessage.hiddenFrom.join(",")},
           insertMessage: {hidden:true, html: insertNewMessageEl, type: "none"},
         };
@@ -8290,10 +8322,12 @@
         let lastTapTime = 0;
         let lastClickTime = 0;
 
-        $.messageInput.addEventListener('touchstart', handleDoubleTap);
-        $.messageInput.addEventListener('click', handleDoubleClick);
+        $.messageInput.addEventListener('touchstart', handleDoubleTap, {passive: true});
+//      $.messageInput.addEventListener('click', handleSingleClick);
+        $.messageInput.addEventListener('dblclick', handleDoubleClick);
 
         function handleDoubleTap(e) {
+          // Caution: Do not use e.preventDefault in handleDoubleTap, at least not without removing the 'passive' parameter from addEventListener above
           let currentTime = new Date().getTime();
           let tapInterval = currentTime - lastTapTime;
           
@@ -8303,7 +8337,7 @@
           lastTapTime = currentTime;
         }
 
-        function handleDoubleClick(e) {
+        function handleSingleClick(e) {
           e.preventDefault();
           let currentTime = new Date().getTime();
           let clickInterval = currentTime - lastClickTime;
@@ -8312,6 +8346,11 @@
             onDoubleTapOrClick();
           }
           lastClickTime = currentTime;
+        }
+
+        function handleDoubleClick(e) {
+          e.preventDefault();
+          onDoubleTapOrClick();
         }
 
         async function onDoubleTapOrClick() {
