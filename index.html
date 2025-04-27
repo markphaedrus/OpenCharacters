@@ -511,10 +511,11 @@
           <div id="builtInChatInterfaceWrapper">
             <div id="messageFeedHeaderBar" style="display: flex; position:absolute;height: 2rem;right: 0;left: 0;margin: 0.5rem; z-index:30;">
               <button id="messageFeedOpenLeftColumnButton" type="button" class="openLeftColumnButton" style="display:none; background: var(--button-bg);border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem; min-width: 2rem; height: 100%; margin-right:0.5rem;">☰</button>
-              <div style="background: var(--button-bg); display:flex; height: 100%; border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;">
+              <div id="messageFeedFloatingMenu" style="background: var(--button-bg); display:flex; height: 100%; border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;">
                 <div style="display: flex;align-items: center;font-size:var(--button-font-size);margin-right: 0.25rem;">model:</div>
                 <select id="threadModelSelector" title="Thread model" style="max-width:130px;"></select>
-                <div id="threadModelSelectorInfo" style="display: flex;align-items: center;font-size:var(--button-font-size);margin-right: 0.25rem;">ℹ️</div>
+                <button id="threadModelSelectorInfoButton" type="button" style="display:flex; align-items:center; font-size:var(--button-font-size); margin-right: 0.25rem;">ℹ️</button>
+                <button id="adviceOnThreadsButton" type="button" title="Advice on creating good chats" style="align-items:center; margin-left:10px;">❓</button>
               </div>
               <!-- <div id="threadSettingsButton" style="margin-left:0.5rem; cursor:pointer;   background: var(--button-bg); display:flex; height: 100%; border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;">
                 <div style="display: flex;align-items: center;justify-content:center;font-size:var(--button-font-size);min-width:1.5rem;">⚙️</div>
@@ -1248,6 +1249,22 @@
       // Model used by default for text embedding
       const openAIDefaultTextEmbeddingModel = "text-embedding-3-small";
 
+      async function handleThreadModelSelectorInfoButton() {
+        await prompt2({
+            message: {type:"none", "html":`<p>This pricing information is manually updated and may not reflect current pricing. Also, pricing information displayed in OpenCharacters may be inaccurate. Always regularly check the charges you are actually incurring.</p><p>Pricing last checked on ${modelPricingLastUpdateDate.toLocaleDateString()}.</p>`},
+          }, {
+            cancelButtonText:null,
+            submitButtonText:"OK"
+          });
+      }
+      $.threadModelSelectorInfoButton.addEventListener("click", handleThreadModelSelectorInfoButton);
+      $.threadModelSelectorInfoButton.title = `Pricing last checked on ${modelPricingLastUpdateDate.toLocaleDateString()}.`;
+
+      async function handleAdviceOnThreadsButton() {
+        await showAdviceOnThreads(false);
+      }
+      $.adviceOnThreadsButton.addEventListener("click", handleAdviceOnThreadsButton);
+
       async function updateModelList() {
         // console.log("updateModelList");
         let modelsArr = broadlyAvailableModels.slice(0);
@@ -1268,6 +1285,8 @@
         } 
       }
       updateModelList();
+
+      $.releaseNotesButton.addEventListener("click", async function() { showReleaseNotes(true); });
 
       // Calculates a display name for the model, which includes pricing information
       function getMenuLabelForModel(m) {
@@ -2198,7 +2217,26 @@
           </div>
         `;
       }
-      
+
+      async function showAdviceOnThreads(shownAutomatically) {
+        const introText = shownAutomatically ? "Looks like this is your first thread on openCharacters, so here are some quick tips:" : "Here are some quick tips:"; 
+        await prompt2({message:{type:"none", html:dedent(`
+              <div style="white-space: pre-wrap;"><b>${introText}</b>
+
+              <b>1.</b> It's very important that you edit the AI's responses (with the pencil icon) if it says something you don't like - especially for the first few messages of a conversation. This is the most powerful way to control the AI's behavior. Much more powerful than the reminder note or the instruction because the AI will mostly tend to behave as it has previously behaved.
+
+              <b>2.</b> Experiment with the reminder note. E.g. if your character's messages are a bit dull, remind it with something like "your writing should be imaginative and engaging", or "be the best roleplayer in the world", or if it's getting repetitive/cliche with its expressions, tell it to avoid doing that. Also try putting your reminders in the instruction and leaving the reminder blank - some users have reported that this works better for them.
+
+              <b>3.</b> It can be helpful to "lock" the AI into a specific reply style by adding something like this to the instruction or reminder:
+
+              <div style="opacity:0.5;">Messages should follow this pattern:
+              "Hello!" - dialogue
+              [Is she watching me?] - inner thoughts
+              *He jumps out of the bushes.* - action</div>
+              <b>4.</b> Look at the instructions and reminders of 'starter characters' for ideas, and visit the <a href="https://discord.com/channels/1085784427495432262/1098562307300278433" target="_blank">#share-guides</a> channel in our Discord server for guides/tips on achieving specific behavior and/or avoiding annoying issues.</div>`)}
+            }, {cancelButtonText:null, submitButtonText:"Okay, got it"});
+      }
+
       // The character list appears when user clicks the "new chat" button.
       // If they click a character, it starts a new thread with that character.
       async function renderCharacterList() {
@@ -2628,8 +2666,6 @@
       //   let folderName = prompt("Folder name:");
       //   if(!folderName) return;
       // });
-
-
 
       async function safelyDeleteCharacterById(characterId) {
         let character = await db.characters.get(characterId);
@@ -6964,21 +7000,7 @@
 
           let messageCount = await db.messages.count();
           if(await db.threads.count() === 1 && (messageCount === 4 || messageCount === 5)) {
-            await prompt2({message:{type:"none", html:dedent(`
-              <div style="white-space: pre-wrap;"><b>Looks like this is your first thread on OpenCharacters, so here are some quick tips:</b>
-
-              <b>1.</b> It's very important that you edit the AI's responses (with the pencil icon) if it says something you don't like - especially for the first few messages of a conversation. This is the most powerful way to control the AI's behavior. Much more powerful than the reminder note or the instruction because the AI will mostly tend to behave as it has previously behaved.
-
-              <b>2.</b> Experiment with the reminder note. E.g. if your character's messages are a bit dull, remind it with something like "your writing should be imaginative and engaging", or "be the best roleplayer in the world", or if it's getting repetitive/cliche with its expressions, tell it to avoid doing that. Also try putting your reminders in the instruction and leaving the reminder blank - some users have reported that this works better for them.
-
-              <b>3.</b> It can be helpful to "lock" the AI into a specific reply style by adding something like this to the instruction or reminder:
-
-              <div style="opacity:0.5;">Messages should follow this pattern:
-              "Hello!" - dialogue
-              [Is she watching me?] - inner thoughts
-              *He jumps out of the bushes.* - action</div>
-              <b>4.</b> Look at the instructions and reminders of 'starter characters' for ideas, and visit the <a href="https://discord.com/channels/1085784427495432262/1098562307300278433" target="_blank">#share-guides</a> channel in our Discord server for guides/tips on achieving specific behavior and/or avoiding annoying issues.</div>`)}
-            }, {cancelButtonText:null, submitButtonText:"Okay, got it"});
+            await showAdviceOnThreads(true);
           }
 
         } finally {
