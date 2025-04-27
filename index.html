@@ -479,7 +479,7 @@
           </div>
           <div style="display:flex;">
             <button type="button" title="Clear all data" id="clearDataButton" class="appOptionButton" style="width: 4rem;">🗑️</button>
-            <button type="button" title="Export all data" id="exportDataButton" class="appOptionButton" style="margin-left: 0.5rem; margin-right: 0.5rem;">💾 export</button>
+            <button type="button" title="Export all data" id="exportDataButton" class="appOptionButton" style="margin-left: 0.5rem; margin-right: 0.5rem;">💾 export <span id="exportDataButtonOperationCount" style="font-size:70%;">0</span></button>
             <button type="button" title="Options" class="appOptionButton" style="position:relative;">📁 import<input title="Import data file" id="importDataFileInput" style="position:absolute; top:0; left:0; right:0; bottom:0; opacity:0; cursor:pointer;" type="file"></button>
           </div>
           <div style="display:flex;">
@@ -904,14 +904,45 @@
 
       console.log("Database ready.");
 
+      // Operation count management
+      // Displays an approximate count of the number of operations since the last export was done
+      let operationsSinceLastExport = (await db.misc.get("operationsSinceLastExport"))?.value || 0;
+
+      async function updateExportDataButton() {
+        if (operationsSinceLastExport == 0) {
+          $.exportDataButton.title = "Export all data";
+          $.exportDataButtonOperationCount.innerText = "";
+        } else {
+          $.exportDataButton.title = `Export all data (approximately ${operationsSinceLastExport} new/revised/deleted messages since last export)`;
+          $.exportDataButtonOperationCount.innerText = operationsSinceLastExport;
+        }
+      }
+
+      async function incrementOperationsSinceLastExport() {
+        operationsSinceLastExport++;
+        await db.misc.put({key:"operationsSinceLastExport", value:operationsSinceLastExport});
+        await updateExportDataButton();
+      }
+
+      async function resetOperationsSinceLastExport() {
+        operationsSinceLastExport = 0;
+        await db.misc.put({key:"operationsSinceLastExport", value:operationsSinceLastExport});
+        await updateExportDataButton();
+      }
+
+      await updateExportDataButton();
+
       // Release Notes
       // These are messages automatically displayed to the user when they load the page, if the user has not yet seen them.
       // Release notes should be kept in chronological order, oldest-first, in the array. ADD NEW RELEASE NOTES TO THE END.
       // DO NOT DELETE RELEASE NOTES UNLESS YOU'RE RESETTING THE NOTES COMPLETELY. (See releaseNotesSeries below for how to reset the notes.)
       // If an individual release note turns out to be wrong or obsolete, change it to the empty string and it will be skipped.
+      // Editing the text of a release note will not redisplay it to users who have already seen it. If it's important that all users see the edited note, blank the existing release note out and create a new one with the edited text instead.
+
       const releaseNotesHTML = [
         "If you are using non-OpenAI models like HuggingFace, be aware that the properties used by OpenCharacters have changed slightly. See <a target='_blank' href='docs/custom-code.md'>the Custom Models documentation</a> for details.",
         "OpenCharacters now supports generating multiple reply variants at once. The menu next to the Send button controls how many reply variants are generated each time you use the Send or 🔁 buttons. This can save a lot of time and money if you frequently use the 🔁 button. For example, if you generate 5 reply variants at once, you'll only be charged once for the length of the existing conversation, though you'll still be charged for the length of all 5 replies.",
+        "The 'Export' button will now display approximately how many things you've done since you last exported the database. This provides a little reminder to export regularly.",
       ];
 
       // If you ever want to do a full documentation update and delete the existing release notes, then do the following:
@@ -921,35 +952,50 @@
       const releaseNotesSeries = 0;
 
       async function showReleaseNotes(forceAllReleaseNotes) {
-        let lastReleaseNoteShown = -1;
+        let lastReleaseNotesCount = 0;
         if (!forceAllReleaseNotes) {
-          lastReleaseNoteShown = (await db.misc.get("lastReleaseNoteShown"))?.value || -1;
+          lastReleaseNotesCount = (await db.misc.get("lastReleaseNotesCount"))?.value || 0;
         }
         const lastReleaseNotesSeries = (await db.misc.get("lastReleaseNotesSeries"))?.value || 0;
         if (lastReleaseNotesSeries != releaseNotesSeries) {
-          lastReleaseNoteShown = -1;
+          lastReleaseNotesCount = 0;
         }
         const releaseNotesCount = releaseNotesHTML.length;
-        if (lastReleaseNoteShown < releaseNotesCount) {
+        if (lastReleaseNotesCount > releaseNotesCount) {
+          console.warn(`That's odd. The database thinks that ${lastReleaseNotesCount} notes have been shown, but there are only ${releaseNotesCount} release notes. Resetting.`);
+          await db.misc.put({key:"lastReleaseNotesSeries", value:releaseNotesSeries});
+          await db.misc.put({key:"lastReleaseNotesCount", value:releaseNotesCount});
+        }
+        else if (lastReleaseNotesCount < releaseNotesCount) {
+          console.log(`Displaying new release notes. Release notes previously shown: ${lastReleaseNotesCount}. Release note count: ${releaseNotesCount}.`);
           let releaseNotes = "<h1>OpenCharacters release notes:</h1>";
-          if (lastReleaseNoteShown == -1) {
+          if (lastReleaseNotesCount == 0) {
             releaseNotes += "<p>Here are all the release notes for OpenCharacters -- things that might not be reflected in the documentation yet.</p>";
           } else {
             releaseNotes += "<p>It looks like there's been a recent update to OpenCharacters. Here are the new release notes you haven't seen.</p>";
           }
           releaseNotes += "<p><i>Don't panic!</i> If you don't understand what any of these release notes are saying, they don't apply to you.</p><ul>";
-          for (let i = lastReleaseNoteShown + 1; i < releaseNotesCount; i++) {
-            releaseNotes += ("<li>" + releaseNotesHTML[i] + "</li>");
+          let releaseNoteItems = "";  
+          for (let i = lastReleaseNotesCount; i < releaseNotesCount; i++) {
+            // Release notes might be blank if they're no longer applicable. Skip the blank ones.
+            if (releaseNotesHTML[i] !== "") {
+              releaseNoteItems += "<li>" + releaseNotesHTML[i] + "</li>";
+            }
           }
-          releaseNotes += "</ul>";
-          await prompt2({
-            releaseNotes: {type: "none", height: "fit-content", html: releaseNotes},
-          }, {
-            cancelButtonText:null,
-            submitButtonText:"OK"
-          });
+          // If all the new release notes are blank, we don't actually have to show the dialog at all
+          if (releaseNoteItems !== "") {
+            releaseNotes += releaseNoteItems;
+            releaseNotes += "</ul>";
+            await prompt2({
+              releaseNotes: {type: "none", height: "fit-content", html: releaseNotes},
+            }, {
+              cancelButtonText:null,
+              submitButtonText:"OK"
+            });
+          }
+          // Update the database whether we displayed anything or not
           await db.misc.put({key:"lastReleaseNotesSeries", value:releaseNotesSeries});
-          await db.misc.put({key:"lastReleaseNoteShown", value:releaseNotesCount});
+          await db.misc.put({key:"lastReleaseNotesCount", value:releaseNotesCount});
         }
       }
 
@@ -991,7 +1037,6 @@
         }
         if ((character.modelName != "good") && (character.modelName != "great")) {
           if (availableModels[character.modelName] === undefined) {
-            debugger;
             character.modelName = "good";
             alert("Character '" + character.name + "' is using a model that is no longer supported. Switching to the current OpenAI good/cheap model. If this isn't what you want, please edit the character.");
           }
@@ -1278,15 +1323,13 @@
         // console.log("updateModelList", availableModels);
         let currentValue = $.threadModelSelector;
         $.threadModelSelector.innerHTML = modelsArr.filter(m => m.type === "completion" || m.type === "chat-completion").map(m => `<option value="${m.name}" ${m.name === currentValue ? "selected" : ""}>${getMenuLabelForModel(m)}</option>`).join("");
-        $.threadModelSelectorInfo.title = "Pricing last checked on " + modelPricingLastUpdateDate.toLocaleDateString();
+        $.threadModelSelectorInfoButton.title = "Pricing last checked on " + modelPricingLastUpdateDate.toLocaleDateString();
         let daysSincePricingCheck = (new Date() - modelPricingLastUpdateDate) / (1000 * 3600 * 24);
         if (daysSincePricingCheck > 90) {
-          $.threadModelSelectorInfo.innerText = "⚠️";
+          $.threadModelSelectorInfoButton.innerText = "⚠️";
         } 
       }
       updateModelList();
-
-      $.releaseNotesButton.addEventListener("click", async function() { showReleaseNotes(true); });
 
       // Calculates a display name for the model, which includes pricing information
       function getMenuLabelForModel(m) {
@@ -1431,6 +1474,7 @@
 
         let yyyymmdd = new Date().toISOString().split("T")[0];
         downloadTextOrBlob(JSON.stringify(json), `opencharacters-export-${yyyymmdd}.json`);
+        await resetOperationsSinceLastExport();
 
         loadingModal.delete();
       });
@@ -1611,6 +1655,7 @@
               }
             });
             await renderThreadList();
+            await incrementOperationsSinceLastExport();
           });
         });
 
@@ -1630,6 +1675,7 @@
             let isFav = !thread.isFav;
             await db.threads.update(threadId, { isFav });
             favStarEl.dataset.isFav = isFav;
+            await incrementOperationsSinceLastExport();
           });
         });
         $.chatThreads.querySelectorAll(".thread .changeFolderPath").forEach(changeFolderPathEl => {
@@ -1642,6 +1688,7 @@
               newFolderPath = newFolderPath.trim().replace(/^\//, "").replace(/\/$/, "").trim();
               await db.threads.update(threadId, { folderPath: newFolderPath });
               await renderThreadList();
+              await incrementOperationsSinceLastExport();
             }
           });
         });
@@ -1661,6 +1708,7 @@
               const threadId = parseInt(btn.closest(".thread").dataset.threadId);
               await db.threads.update(threadId, { name: newName });
               await renderThreadList();
+              await incrementOperationsSinceLastExport();
             }
           });
         });
@@ -1703,6 +1751,8 @@
             }
 
             loadingModal.delete();
+            // Note: Exporting an individual thread does not count as exporting the whole database,
+            // so we don't reset the operations count
           });
         });
 
@@ -1724,6 +1774,7 @@
               const threadId = parseInt(btn.closest(".thread").dataset.threadId);
               await safelyDeleteThreadById(threadId);
               await renderThreadList();
+              await incrementOperationsSinceLastExport();
               // switch to character selection area
               await renderCharacterList();
               document.querySelectorAll("#middleColumn > .middleColumnScreen").forEach(el => hideEl(el));
@@ -2130,6 +2181,7 @@
               await db.characters.update(characterId, {reminderMessage:result.reminderMessage});
             }
             await updateInlineReminderMessage();
+            await incrementOperationsSinceLastExport();
           }
         });
         return el;
@@ -2557,6 +2609,7 @@
               }
             });
             await renderCharacterList();
+            await incrementOperationsSinceLastExport();
           });
         });
 
@@ -2630,6 +2683,7 @@
               await safelyDeleteCharacterById(characterId);
               await renderCharacterList();
               await renderThreadList();
+              await incrementOperationsSinceLastExport();
             }
           });
 
@@ -2642,6 +2696,7 @@
               newFolderPath = newFolderPath.trim().replace(/^\//, "").replace(/\/$/, "").trim();
               await db.characters.update(characterId, { folderPath: newFolderPath });
               await renderCharacterList();
+              await incrementOperationsSinceLastExport();
             }
           });
           
@@ -2766,6 +2821,7 @@
 
         await renderCharacterList();
         await renderThreadList();
+        await incrementOperationsSinceLastExport();
       }
 
 
@@ -2807,6 +2863,7 @@
 
         await renderThreadList();
         await showThread(thread.id);
+        await incrementOperationsSinceLastExport();
       }
       
       async function updateUIForModel(modelName) {
@@ -5875,6 +5932,8 @@
             // update thread's lastMessageTime
             await db.threads.update(threadId, { lastMessageTime: Date.now() });
 
+            await incrementOperationsSinceLastExport();
+
             // if this isn't at the top of the thread list, re-render the thread list
             let threadElements = [...$.chatThreads.querySelectorAll(".thread")];
             if(!thread.isFav) threadElements = threadElements.filter(el => el.querySelector(".favStar").dataset.isFav==="false");
@@ -5967,6 +6026,7 @@
           await db.messages.put(message);
           let newMessageEl = await addMessageToFeed(message, {inPlaceOf:messageEl, showVariantsSelector:true});
           newMessageEl.querySelector(".currentVariantNumber").innerHTML = `${(currentIndex-1) + 1}<span style="opacity:0.5">/${message.variants.length}</span>`; // +1 because 1-indexed
+          await incrementOperationsSinceLastExport();
         } else if(nextOrPrevious === "next") {
           let message = await db.messages.get(parseInt(messageEl.dataset.id));
           let currentIndex = message.variants.findIndex(v => v===null); // current message is represented with `null` in variant array
@@ -5977,6 +6037,7 @@
           await db.messages.put(message);
           let newMessageEl = await addMessageToFeed(message, {inPlaceOf:messageEl, showVariantsSelector:true});
           newMessageEl.querySelector(".currentVariantNumber").innerHTML = `${(currentIndex+1) + 1}<span style="opacity:0.5">/${message.variants.length}</span>`; // +1 because 1-indexed
+          await incrementOperationsSinceLastExport();
         } else {
           throw new Error("Invalid nextOrPrevious value: "+nextOrPrevious);
         }
@@ -6392,6 +6453,8 @@
 
           let newMessageEl = await addMessageToFeed(messageObj, opts);
 
+          await incrementOperationsSinceLastExport();
+
           await triggerMessageActionCustomCodeEvent({threadId, eventData:{messageId:messageObj.id}, eventName:"MessageInserted"});
 
           if ((messageObj.characterId == thread.characterId) && (messageObj.message === "")) {
@@ -6434,6 +6497,8 @@
         await addMessageToFeed(newMessage, {inPlaceOf:messageEl});
         if(shouldScrollDown) $.messageFeed.scrollTop = $.messageFeed.scrollHeight;
 
+        await incrementOperationsSinceLastExport();
+
         await triggerMessageActionCustomCodeEvent({threadId, eventData:{messageId}, eventName:"MessageEdited"});
       }
 
@@ -6466,6 +6531,7 @@
           let opts = {};
           if(prevMessageEl) opts.insertAfter = prevMessageEl;
           await addMessageToFeed(messageObj, opts);
+          await incrementOperationsSinceLastExport();
           
           undoBtn.remove();
 
@@ -6478,6 +6544,7 @@
         if(!$.messageFeed.querySelector(".message")) {
           showEl($.noMessagesNotice);
         }
+        await incrementOperationsSinceLastExport();
         await updateInlineReminderMessage();
         await updateThreadScene();
         await triggerMessageActionCustomCodeEvent({threadId, eventData:{messageId}, eventName:"MessageDeleted", triggerBotReply:false});
@@ -6547,6 +6614,8 @@
         $.sendButton.disabled = true;
 
         try {
+          await incrementOperationsSinceLastExport();
+
           let threadId = activeThreadId;
           let thread = await db.threads.get(threadId);
           let characterId = thread.characterId;
@@ -8147,6 +8216,7 @@
           await addMessageToFeed(messageObj, {character:characterToReplyWith, inPlaceOf:messageEl});
           if(shouldScrollDown) $.messageFeed.scrollTop = $.messageFeed.scrollHeight;
 
+          await incrementOperationsSinceLastExport();
           await triggerMessageActionCustomCodeEvent({threadId, eventData:{}, eventName:"MessageAdded"});
         }
         return true;
@@ -8609,6 +8679,7 @@
         }
 
         let showInlineReminder = result.showInlineReminder;
+        await incrementOperationsSinceLastExport();
 
         // save to db
         await db.misc.put({key: "userName", value: userName});
@@ -8685,7 +8756,9 @@
 
         loadingModal.delete();
 
-        if(!success) {
+        if (success) {
+          await resetOperationsSinceLastExport();
+        } else {
           alert("The file that you're importing doesn't seem to be a valid format, or something went wrong during import. If you think your file is valid, please report this as a bug on Github or Discord.");
         }
 
