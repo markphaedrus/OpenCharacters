@@ -47,6 +47,17 @@ export function asInteger(x) {
   return NaN;
 }
 
+export function plainquotes(str) {
+  if (typeof str != "string") {
+    return str;
+  }
+  str = str.replaceAll('“', '\"');
+  str = str.replaceAll('”', '\"')
+  str = str.replaceAll('‘', '\'');
+  str = str.replaceAll('’', '\'');
+  return str;
+}
+
 export async function prompt2(specs, opts={}) {
 
   if(!opts.backgroundColor) opts.backgroundColor = prompt2.defaults.backgroundColor ?? (getComputedStyle(document.body).getPropertyValue('background-color')==="rgba(0, 0, 0, 0)" ? "#e8e8e8" : getComputedStyle(document.body).getPropertyValue('background-color'));

@@ -640,7 +640,7 @@
     <audio id="musicPlayer" style="display:none;"></audio>
 
     <script type="module">
-      import { $, $$, delay, showEl, hideEl, prompt2, createFloatingWindow, sanitizeHtml, textToSpeech, sha256Text, dedent, downloadTextOrBlob, createGpt3Tokenizer, cosineDistance, createLoadingModal, applyObjectOverrides, objectKeysAndTypesAreValid, addBackgroundToElement, importStylesheet, htmlToElement, jsonToBlob } from "./utils.js?v=34";
+      import { $, $$, delay, showEl, hideEl, prompt2, createFloatingWindow, sanitizeHtml, textToSpeech, sha256Text, dedent, downloadTextOrBlob, createGpt3Tokenizer, cosineDistance, createLoadingModal, applyObjectOverrides, objectKeysAndTypesAreValid, addBackgroundToElement, importStylesheet, htmlToElement, jsonToBlob, plainquotes } from "./utils.js?v=34";
 
       let JSON5;
       (async function() {
@@ -2452,6 +2452,7 @@
               url: "https://i.imgur.com/Gxt0kRX.jpg",
             },
             fitMessagesInContextMethod: "summarizeOld",
+            smartQuoteMethod: "smartQuotes",
             temperature: 0.7,
             customCode: "",
           },
@@ -2467,6 +2468,7 @@
               url: "https://i.imgur.com/bHN0oiq.jpg",
             },
             fitMessagesInContextMethod: "summarizeOld",
+            smartQuoteMethod: "smartQuotes",
             temperature: 0.7,
             customCode: "",
           },
@@ -2482,6 +2484,7 @@
               url: "https://i.imgur.com/kb7Tzf8.jpg",
             },
             fitMessagesInContextMethod: "summarizeOld",
+            smartQuoteMethod: "smartQuotes",
             temperature: 0.7,
             customCode: "",
           },
@@ -2522,6 +2525,7 @@
               url: "https://i.imgur.com/pweR8nT.jpg",
             },
             fitMessagesInContextMethod: "summarizeOld",
+            smartQuoteMethod: "smartQuotes",
             temperature: 0.7,
             customCode: "",
           },
@@ -2565,6 +2569,7 @@
               url: "https://i.imgur.com/EGDfzaN.jpeg",
             },
             fitMessagesInContextMethod: "summarizeOld",
+            smartQuoteMethod: "smartQuotes",
             temperature: 0.7,
             customCode: dedent(`
               // Note: You can add multiple URLs for a single label and a random one will be selected.
@@ -3201,6 +3206,7 @@
           modelName: { hidden:true, label: "🤖 Model name:", infoTooltip:"", type:"select", options:[{content:"GOOD/CHEAP", value:"good"}, {content:"GREAT/EXPENSIVE", value:"great"}, ...broadlyAvailableModels.filter(m => m.type === "completion" || m.type === "chat-completion").map(m => ({value:m.name, content:getMenuLabelForModel(m)}))], defaultValue: defaultValues.modelName || "good" },
           maxTokensPerMessage: { hidden:true, label: "📏 Max tokens per message:", infoTooltip:"This can be used to limit the length of the AI's responses. A 'token' is basically a word - 500 tokens is about 400 words in most tokenizers. Leave this blank to allow unlimited tokens to be generated per message. Note that you can also control the length of the AI's responses in the reminder message by saying something like 'Your response should be at most 3 sentences' or whatever.", type:"textLine", defaultValue:defaultValues.maxTokensPerMessage || "" },
           fitMessagesInContextMethod: { hidden:true, label: "Method for fitting messages within model's context limit.", type:"select", options:[{value:"dropOld", content:"drop oldest messages"}, {value:"summarizeOld", content:"summarize oldest messages"}], defaultValue: defaultValues.fitMessagesInContextMethod ?? "summarizeOld" },
+          smartQuoteMethod: { hidden:true, label: "Method for handling quotation marks in user messages and bot replies.", type:"select", options:[{value:"noChange", content:"unchanged"}, {value:"smartQuotes", content:"Convert plain quotes to curly quotes"}, {value:"plainQuotes", content:"Convert curly quotes to plain quotes"}], defaultValue: defaultValues.smartQuoteMethod ?? "smartQuotes" },
           textEmbeddingModelName: { hidden:true, label: "Text embedding model:", infoTooltip:"It's what converts each memory/lore entry (text) into a bunch of numbers that can be efficiently used for search/similarity/lookup.", type:"select", options:[{content: "default", value: "default"}, ...broadlyAvailableModels.filter(m => m.type === "text-embedding").map(m => ({value:m.name, content:m.shortLabel + " ($" + m.tokenPricing.prompt + ")"}))], defaultValue: defaultValues.textEmbeddingModelName ?? "default" },
           autoGenerateMemories: { hidden:true, show:d=>d.fitMessagesInContextMethod==="summarizeOld", label: "💽 Auto-generated character memories:", infoTooltip:"You can use /mem and /lore commands to manually add memories and lore. If you enable this feature, memories will be created by the character during each summarization step. This increases the cost a bit (maybe +20%) and makes responses a bit slower, but gives the character the ability to 'save' memories, and 'recall' them when they're relevant. Currently this only works within individual threads - i.e. characters can't recall details from *other* threads. You can manually copy memories and lore over into a new thread if needed.", type:"select", options:[{value:"none", content:"disabled"}, {value:"v1", content:"enabled"}], defaultValue: defaultValues.autoGenerateMemories ?? "v1" },
           avatarSize: { hidden:true, label: "Avatar size, as a multiple of the default size.", type:"textLine", defaultValue: defaultValues.avatar?.size ?? "1" },
@@ -4573,14 +4579,39 @@
         "insufficient_quota": "Looks like you've used up all your OpenAI credits. You can buy more here:\nhttps://platform.openai.com/account\n\nNote that OpenCharacters does not receive any money from this. OpenAI is the company that provides the 'brain' for your AI. OpenCharacters itself is completely free.",
       };
 
-      function sanitizeBotMessage(msg, charname) {
-        debugger;
-        // OpenAPI models frequently mix smart quotes with regular quotes
-        let smartmsg = smartquotes(msg);
-        if (smartmsg != msg) {
-          console.log("Regular quotes in reply converted to smart quotes");
-          msg = smartmsg;
+      // OpenAPI models frequently mix smart quotes with regular quotes
+      function sanitizeQuotes(msg, smartQuoteMethod) {
+        if (smartQuoteMethod == "smartQuotes") {
+          let smartmsg = smartquotes(msg);
+          if (smartmsg != msg) {
+            console.log("Regular quotes in reply converted to smart quotes");
+            msg = smartmsg;
+          }
+        } else if (smartQuoteMethod == "plainQuotes") {
+          let plainmsg = plainquotes(msg);
+          if (plainmsg != msg) {
+            console.log("Smart quotes in reply converted to plain quotes");
+            msg = plainmsg;
+          }
         }
+        return msg;
+      }
+
+      function sanitizeUserMessage(msg, smartQuoteMethod) {
+        if (smartQuoteMethod === null) {
+          debugger;
+          return msg;
+        }
+        msg = sanitizeQuotes(msg, smartQuoteMethod);
+        return msg;
+      }
+
+      function sanitizeBotMessage(msg, charname, smartQuoteMethod) {
+        if ((charname === null) || (smartQuoteMethod === null)) {
+          debugger;
+          return msg;
+        }
+        msg = sanitizeQuotes(msg, smartQuoteMethod);
         // sometimes the gpt-turbo / chat models prefix messages with "characterName:"
         if(msg && msg.startsWith(`${charname}:`)) {
           msg = msg.slice(charname.length+1).trim();
@@ -4610,6 +4641,7 @@
         }
         let threadCharacter = await db.characters.get(thread.characterId);
         const userCharacter = await getUserCharacterObj(thread.id);
+        const smartQuoteMethod = threadCharacter.smartQuoteMethod || "smartQuotes"
 
         let fullMessagesArr = await prepareMessagesForBot({messages, onProgressMessage});
 
@@ -5265,7 +5297,7 @@
               await handleStreamingResponse(reader).catch(e => {  // this appends chunks to the `result` variable
                 if(!signals.stop) alert("getBotReply > modelType:chat > handleStreamingResponse:\n\n"+e.stack);
               });
-              result = sanitizeBotMessage(result);
+              result = sanitizeBotMessage(result, replyingCharacterName, smartQuoteMethod);
               apiTokenUsage.completion += await countTokens(result, modelName);
               apiTokenUsage.total += await countTokens(result, modelName);
             }
@@ -5294,10 +5326,10 @@
             if (allowMultipleReplies) {
               result = new Array();
               for (let i = 0; i < json?.choices?.length; i++) {
-                result.push(sanitizeBotMessage(json?.choices?.[i].message.content));
+                result.push(sanitizeBotMessage(json?.choices?.[i].message.content, replyingCharacterName, smartQuoteMethod));
               }
             } else {
-              result = sanitizeBotMessage(json?.choices?.[0].message.content);
+              result = sanitizeBotMessage(json?.choices?.[0].message.content, replyingCharacterName, smartQuoteMethod);
             }
           }
 
@@ -5378,7 +5410,7 @@
             if(json?.usage) {
               apiTokenUsage = {prompt:json?.usage.prompt_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
             }
-            result = sanitizeBotMessage(json?.choices?.[0].text.trim());
+            result = sanitizeBotMessage(json?.choices?.[0].text.trim(), replyingCharacterName, smartQuoteMethod);
           }
         }
 
@@ -5969,6 +6001,8 @@
           } else {
             replyingCharacter = await db.characters.get(messageObj.characterId);
           }
+          let replyingCharacterName = replyingCharacter.name;
+          let smartQuoteMethod = replyingCharacter.smartQuoteMethod;
 
           let signals = {stop:false, wasDeleted:false};
 
@@ -6031,14 +6065,14 @@
               }
               messageObj.variants[messageObj.variants.findIndex(v => v===null)] = messageObj.message;
               messageObj.variants.push(null);
-              messageObj.message = sanitizeBotMessage(message[0]);
+              messageObj.message = sanitizeBotMessage(message[0], replyingCharacterName, smartQuoteMethod);
               for(let i = 1; i < numReplies; i++) {
-                messageObj.variants.push(sanitizeBotMessage(message[i]));
+                messageObj.variants.push(sanitizeBotMessage(message[i], replyingCharacterName, smartQuoteMethod));
               }
             } else {
               messageObj.variants[messageObj.variants.findIndex(v => v===null)] = messageObj.message;
               messageObj.variants.push(null);
-              messageObj.message = sanitizeBotMessage(message);
+              messageObj.message = sanitizeBotMessage(message, replyingCharacterName, smartQuoteMethod);
             }
 
             let shouldScrollDown = messageFeedIsNearBottom();
@@ -6084,7 +6118,7 @@
       }
 
       function messageFeedIsNearBottom() {
-        return $.messageFeed.scrollHeight - $.messageFeed.scrollTop - $.messageFeed.offsetHeight < 400;
+        return $.messageFeed.scrollHeight - $.messageFeed.scrollTop - $.messageFeed.offsetHeight < 100;
       }
 
       async function addMessageToFeed(originalMessageObj, opts={}) {
@@ -6547,6 +6581,8 @@
         const originalMessage = await db.messages.get(messageId);
         let threadId = originalMessage.threadId;
         const thread = await db.threads.get(threadId);
+        let threadCharacter = await db.characters.get(thread.characterId);
+        let smartQuoteMethod = threadCharacter.smartQuoteMethod;
 
         let insertNewMessageEl = document.createElement("div");
         insertNewMessageEl.style.cssText = "margin-top: 1rem;";
@@ -6559,6 +6595,8 @@
             hiddenFrom: {hidden:true, label: "hidden from:", type: "select", options:[{value:"user"}, {value:"ai"}, {content:"both", value:"user,ai"}, {content:"neither", value:""}], defaultValue: originalMessage.hiddenFrom.join(",")},
           });
           if(!result) return;
+          // Using the user-reply sanitization handler for everything here is close enough
+          result.content = sanitizeUserMessage(result.content, smartQuoteMethod);
           let characterId = result.author === "user" ? -1 : result.author === "system" ? -2 : thread.characterId;
           let messageObj = createMessageObj({threadId, message:result.content, instruction:result.instruction, characterId, hiddenFrom:result.hiddenFrom.split(",")});
           
@@ -6618,6 +6656,7 @@
         result.hiddenFrom = result.hiddenFrom.split(",").filter(x => x);
         if(!result.instruction || !result.instruction.trim()) result.instruction = null;
 
+        result.message = sanitizeUserMessage(result.message, smartQuoteMethod);
         await db.messages.update(messageId, result);
 
         let newMessage = await db.messages.get(messageId);
@@ -6692,6 +6731,7 @@
           initialMessage: [],
           customCode: "",
           fitMessagesInContextMethod: "dropOld",
+          smartQuoteMethod: "smartQuotes",
           avatar: {
             url: (await db.misc.get("userAvatarUrl"))?.value || "",
             // we leave `shape` and `size` as thread default
@@ -6873,7 +6913,6 @@
               }
               $.messageInput.value = "";
             } else if(message.trim() === "/mem") {
-              let thread = await db.threads.get(threadId);
               let embeddingModelName = await getRealTextEmbeddingModelName(thread.textEmbeddingModelName);
 
               let originalGeneratedMemories = await db.memories.where({threadId, status:"current"}).toArray();
@@ -6994,7 +7033,6 @@
               // text following /lore is a lore entry to add to db.lore
               let loadingModal = createLoadingModal("Computing lore embedding. Please wait...", $.middleColumn);
               let text = message.trim().slice("/lore ".length);
-              let thread = await db.threads.get(threadId);
               let bookId = thread.loreBookId;
               let modelName = await getRealTextEmbeddingModelName(thread.textEmbeddingModelName);
               let embedding = await embedTexts({textArr:[text], modelName});
@@ -7003,8 +7041,6 @@
               loadingModal.delete();
               $.messageInput.value = "";
             } else if(message.trim() === "/lore") {
-              let thread = await db.threads.get(threadId);
-              let character = await db.characters.get(thread.characterId);
               let loreBookId = thread.loreBookId;
               if(loreBookId === undefined) debugger;
               let originalLoreEntries = await db.lore.where({bookId:loreBookId}).toArray();
@@ -7023,18 +7059,18 @@
 
               let loreDefaultValue = originalLoreEntriesText;
 
-              let loreBookUrlEntries = await db.lore.where("bookUrl").anyOf(character.loreBookUrls).toArray();
+              let loreBookUrlEntries = await db.lore.where("bookUrl").anyOf(threadCharacter.loreBookUrls).toArray();
 
               while(1) {
                 let controls = {}; // this will get populated with `data` object that is proxied such that we can update the values of the inputs in reloadButtonClickHandler.
 
                 async function reloadButtonClickHandler() {
                   let embeddingModelName = getRealTextEmbeddingModelName(thread.textEmbeddingModelName);
-                  await ensureLoreUrlsAreLoaded({loreBookUrls:character.loreBookUrls, modelName:embeddingModelName}).catch(e => {
+                  await ensureLoreUrlsAreLoaded({loreBookUrls:threadCharacter.loreBookUrls, modelName:embeddingModelName}).catch(e => {
                     console.error("Error loading lore urls:", e);
                     alert("Error loading lore urls: "+e);
                   });
-                  loreBookUrlEntries = await db.lore.where("bookUrl").anyOf(character.loreBookUrls).toArray();
+                  loreBookUrlEntries = await db.lore.where("bookUrl").anyOf(threadCharacter.loreBookUrls).toArray();
                   controls.data.loreBookUrlEntriesText = loreBookUrlEntries.map(m => `${m.text}`).join("\n\n");
                 }
 
@@ -7101,8 +7137,6 @@
               }
               $.messageInput.value = "";
             } else if (message.trim() === "/flushembeds") {
-              let thread = await db.threads.get(threadId);
-              let threadCharacter = await db.characters.get(thread.characterId);
               let oldTextEmbeddingModelName = thread.textEmbeddingModelName;
               let newTextEmbeddingModelName = threadCharacter.textEmbeddingModelName;
               await db.textEmbeddingCache.clear();
@@ -7117,7 +7151,6 @@
               $.messageInput.value = "";
             } else if(message.startsWith("/name ") || message.startsWith("/avatar ")) {
               let arg = message.replace(/^\/(name|avatar) /, "");
-              let thread = await db.threads.get(threadId);
               if(message.startsWith("/name ")) {
                 let regex = new RegExp(characterNameValidationPattern);
                 if(regex.test(arg)) {
@@ -7164,6 +7197,8 @@
                 }
               }
 
+              const smartQuoteMethod = threadCharacter.smartQuoteMethod;
+              message = sanitizeUserMessage(message, smartQuoteMethod);
               let messageObj = createMessageObj({threadId, message, characterId:senderCharacterId});
               
               let id = await addMessageToDb(messageObj);
