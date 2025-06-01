@@ -1,3 +1,5 @@
+/*eslint no-debugger: "off"*/
+
 export const $$ = (selector) => document.querySelectorAll(selector);
 
 // add a proxy to $ that captures function calls and has a getter for ids:
@@ -24,6 +26,27 @@ export const hideEl = (el) => {
 
 export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+export function isInteger(x) {
+  if (typeof x == "number") {
+    return Number.isInteger(x);
+  }
+  if (typeof x == "string") {
+    return !isNaN(x) && !isNaN(parseInt(x));
+  }
+  return false;
+}
+
+export function asInteger(x) {
+  if (typeof x == "number") {
+    return Number.isInteger(x) ? x : NaN;
+  }
+  if (typeof x == "string") {
+    return (!isNaN(x) && !isNaN(parseInt(x))) ? parseInt(x) : NaN;
+  }
+  debugger;
+  return NaN;
+}
+
 export async function prompt2(specs, opts={}) {
 
   if(!opts.backgroundColor) opts.backgroundColor = prompt2.defaults.backgroundColor ?? (getComputedStyle(document.body).getPropertyValue('background-color')==="rgba(0, 0, 0, 0)" ? "#e8e8e8" : getComputedStyle(document.body).getPropertyValue('background-color'));
@@ -40,7 +63,7 @@ export async function prompt2(specs, opts={}) {
           <div class="sectionLabel" style="${structuredSectionsI === 0 ? "margin-top:0;" : ""}">${spec.label}${spec.infoTooltip ? ` <span title="${sanitizeHtml(spec.infoTooltip)}" style="cursor:pointer;" onclick="alert(this.title)">ℹ️</span>` : ""}</div>
           <div style="display:flex;">
             <div style="flex-grow:1;">
-              <select data-spec-key="${sanitizeHtml(key)}" value="${sanitizeHtml(spec.defaultValue)}" ${spec.disabled === true ? "disabled" : ""} style="width:100%;height:100%; padding:0.25rem;">${spec.options.map(o => `<option value="${sanitizeHtml(o.value)}" ${o.value === spec.defaultValue ? "selected" :""}>${sanitizeHtml(o.content) || sanitizeHtml(o.value)}</option>`).join("")}</select>
+              <select data-spec-key="${sanitizeHtml(key)}" value="${sanitizeHtml(spec.defaultValue)}" ${spec.disabled === true ? "disabled" : ""} ${spec.infoTooltip ? (" title='" + sanitizeHtml(spec.infoTooltip) + "'") : ""} style="width:100%;height:100%; padding:0.25rem;">${spec.options.map(o => `<option value="${sanitizeHtml(o.value)}" ${o.value === spec.defaultValue ? "selected" :""}>${sanitizeHtml(o.content) || sanitizeHtml(o.value)}</option>`).join("")}</select>
             </div>
           </div>
         </section>`;
@@ -52,6 +75,17 @@ export async function prompt2(specs, opts={}) {
           <div style="display:flex;">
             <div style="flex-grow:1;">
               <input data-initial-focus="${spec.focus === true ? "yes" : "no"}" data-spec-key="${sanitizeHtml(key)}" ${spec.disabled === true ? "disabled" : ""} value="${sanitizeHtml(spec.defaultValue)}" style="width:100%;height:100%; border: 1px solid lightgrey; border-radius: 3px; padding: 0.25rem;" type="text" placeholder="${sanitizeHtml(spec.placeholder)}" ${spec.validationPattern ? `pattern="${sanitizeHtml(spec.validationPattern)}"` : ""}>
+            </div>
+          </div>
+        </section>`;
+      structuredSectionsI++;
+    } else if(spec.type == "textNumber") {
+      sections += `
+        <section class="structuredInputSection" data-is-hidden-extra="${spec.hidden === true ? "yes" : "no"}" style="${spec.hidden === true ? "display:none" : ""};">
+          <div class="sectionLabel" style="${structuredSectionsI === 0 ? "margin-top:0;" : ""}">${spec.label}${spec.infoTooltip ? ` <span title="${sanitizeHtml(spec.infoTooltip)}" style="cursor:pointer;" onclick="alert(this.title)">ℹ️</span>` : ""}</div>
+          <div style="display:flex;">
+            <div style="flex-grow:1;">
+              <input data-initial-focus="${spec.focus === true ? "yes" : "no"}" data-spec-key="${sanitizeHtml(key)}" ${spec.disabled === true ? "disabled" : ""} value="${sanitizeHtml(spec.defaultValue)}" style="width:100%;height:100%; border: 1px solid lightgrey; border-radius: 3px; padding: 0.25rem;" type="number" placeholder="${sanitizeHtml(spec.placeholder)}" ${spec.min ? `min="${sanitizeHtml(spec.min)}"` : ""} ${spec.max ? `max="${sanitizeHtml(spec.max)}"` : ""} ${spec.step ? `step="${sanitizeHtml(spec.step)}"` : ""} ${spec.validationPattern ? `pattern="${sanitizeHtml(spec.validationPattern)}"` : ""}>
             </div>
           </div>
         </section>`;
