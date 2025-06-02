@@ -2105,8 +2105,15 @@
       // for debugging:
       window.renderMessageFeed = renderMessageFeed;
       
+      // This function is sometimes needed when a lot of messages are inserted in one place in a thread. The messages' 
+      // "order" numbers can get so close together than it hits the limits of floating point precision, and makes it
+      // impossible to insert more messages without creating duplicate "order" values. To fix this, we just reset all
+      // the order numbers for all the messages in the thread, making them all one apart again.
+
       async function respaceThreadMessageOrders(threadId) {
-        debugger;
+        if (!confirm("This will reset the ordering information on the messages in this conversation, so that you can insert more new messages without a problem. It's normally safe, but you should strongly consider using the 'Export' button to back up your conversations before doing this.\n\nDo you want to proceed with fixing the conversation's message order?")) {
+          return;
+        }
         const thread = (await db.threads.where("id").equals(threadId).toArray())[0];
         let messages = await db.messages.where("threadId").equals(threadId).toArray();
         messages.sort((a,b) => a.order - b.order);
@@ -2115,6 +2122,8 @@
           el.order = ++lastOrder;
           await db.messages.update(el.id, el);
         }
+        alert("I've finished the process. You should be able to insert messages again. I will refresh the browser page now, just to make sure everything displays properly.");
+        location.reload();
       }
 
 
@@ -6627,6 +6636,11 @@
             prevOrder = originalMessage.order;
             nextOrder = messageIndex < messages.length-1 ? messages[messageIndex+1].order : messages[messageIndex].order+2;
           }
+          if ((nextOrder - prevOrder) < 0.0000001) {
+            alert("There's a bit of a problem. You've inserted enough messages in one place that I can't safely insert a new one here. To fix this, please exit out of this dialog, then type the command '/respacemessageorders' into the message textbox and click Send. This will reset the thread's ordering information and let you insert lots more messages.");
+            return;
+          }
+
           messageObj.order = (prevOrder + nextOrder) / 2;
           messageObj.id = await addMessageToDb(messageObj);
           
