@@ -578,7 +578,7 @@
               <button id="messageFeedOpenLeftColumnButton" type="button" class="openLeftColumnButton" style="display:none; background: var(--button-bg);border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem; min-width: 2rem; height: 100%; margin-right:0.5rem;">☰</button>
               <div id="messageFeedFloatingMenu" style="background: var(--button-bg); display:flex; height: 100%; border-radius: var(--border-radius);border: 1px solid var(--button-border-color);padding: 0.25rem;">
                 <div style="display: flex;align-items: center;font-size:var(--button-font-size);margin-right: 0.25rem;">model:</div>
-                <select id="threadModelSelector" title="Thread model" style="max-width:130px;"></select>
+                <select id="threadModelSelector" title="Thread model" style="max-width:180px;"></select>
                 <button id="threadModelSelectorInfoButton" type="button" style="display:flex; align-items:center; font-size:var(--button-font-size); margin-right: 0.25rem;">ℹ️</button>
                 <button id="adviceOnThreadsButton" type="button" title="Advice on creating good chats" style="align-items:center; margin-left:10px;">❓</button>
               </div>
@@ -1337,15 +1337,15 @@
       // for openai and webgpu/webnn models (i.e. you don't need to setup your own inference server, and most people already have an openai account):
       // Prices are per 1M tokens
       let broadlyAvailableModels = [
-        {name:"chatgpt-4o-latest", shortLabel:"ChatGPT-4o Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 5.00 , completion: 15.00 }},
-        {name:"gpt-4o", shortLabel:"GPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 2.50 , completion: 10.00 }},
-        {name:"gpt-4o-mini", shortLabel:"GPT-4o-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.15, completion: 0.60}},
-        {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 2.00 , completion: 8.00 }},
-        {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.40, completion: 1.60}},
-        {name:"gpt-4.1-nano", shortLabel:"GPT-4.1-nano", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.10, completion: 0.40}},
-        {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{prompt: 1.10 , completion: 4.40}},        
-        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.2, tokenPricing:{prompt:0.02, completion: 0.02}},
-        {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:4, tokenPricing:{prompt:0.10, completion: 0.10}},
+        {name:"chatgpt-4o-latest", shortLabel:"ChatGPT-4o Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:5.00, cachedprompt:5.00, completion:15.00 }},
+        {name:"gpt-4o", shortLabel:"GPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:2.50, cachedprompt:1.25, completion:10.00 }},
+        {name:"gpt-4o-mini", shortLabel:"GPT-4o-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.15, cachedprompt:0.075, completion:0.60 }},
+        {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:2.00, cachedprompt:0.50, completion:8.00 }},
+        {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.40, cachedprompt:0.10, completion:1.60 }},
+        {name:"gpt-4.1-nano", shortLabel:"GPT-4.1-nano", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.10, cachedprompt:0.025, completion:0.40 }},
+        {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{ prompt:1.10, cachedprompt:0.55, completion:4.40 }},        
+        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.2, tokenPricing:{ prompt:0.02, completion: 0.02 }},
+        {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:4, tokenPricing:{ prompt:0.10, completion: 0.10 }},
       ];
       const modelPricingLastUpdateDate = new Date("2025-06-02");
 
@@ -1394,7 +1394,7 @@
 
       async function handleThreadModelSelectorInfoButton() {
         await prompt2({
-            message: {type:"none", "html":`<p>This pricing information is manually updated and may not reflect current pricing. Also, pricing information displayed in OpenCharacters may be inaccurate. Always regularly check the charges you are actually incurring.</p><p>Pricing last checked on ${modelPricingLastUpdateDate.toLocaleDateString()}.</p>`},
+            message: {type:"none", "html":`<p>This shows the price of the model. For example, &quot;$3.00/$1.00/$2.00&quot; means that the model charges $3.00 per million tokens in the prompt, but only $1.00 per million tokens for 'cached tokens' -- parts of the beginning of the prompt that haven't changed, like the character description. It charges $2.00 per million tokens for its answers.</p></p>This pricing information is manually updated and may not reflect current pricing. Also, pricing information displayed in OpenCharacters may be inaccurate. Always regularly check the charges you are actually incurring.</p><p>Pricing last checked on ${modelPricingLastUpdateDate.toLocaleDateString()}.</p>`},
           }, {
             cancelButtonText:null,
             submitButtonText:"OK"
@@ -1431,7 +1431,7 @@
 
       // Calculates a display name for the model, which includes pricing information
       function getMenuLabelForModel(m) {
-        return m.shortLabel + " ($" + m.tokenPricing.prompt.toFixed(2) + "/$" + m.tokenPricing.completion.toFixed(2) + ")";
+        return m.shortLabel + " ($" + m.tokenPricing.prompt.toFixed(2) + "/$" + m.tokenPricing.cachedprompt.toFixed(2) + "/$" + m.tokenPricing.completion.toFixed(2) + ")";
       }
 
       function modelIsOpenAiModel(modelName) {
@@ -1886,14 +1886,30 @@
       }
 
       function usageStatsEntriesToCost(entries) {
-        let sum = 0;
+        let cachedPromptTotalCost = 0;
+        let uncachedPromptTotalCost = 0;
+        let cachedPromptTotalSavings = 0;
+        let completionTotalCost = 0;
         for(let entry of entries) {
-          let costs = getModel(entry.modelName)?.tokenPricing ?? {prompt:0, completion:0}; // might not be available if they added a custom model but it's now removed.
-          sum += costs.prompt * entry.tokens.prompt/1000000;
-          sum += costs.completion * entry.tokens.completion/1000000;
+          let costs = getModel(entry.modelName)?.tokenPricing ?? {prompt:0, cachedprompt:0, completion:0}; // might not be available if they added a custom model but it's now removed.
+          const cachedPromptModelCost = costs.cachedprompt || costs.prompt;
+          const cachedPromptModelCostSavings = costs.prompt - cachedPromptModelCost;
+          const cachedPromptTokens = entry.tokens.cachedprompt || 0;
+          const uncachedPromptTokens = entry.tokens.prompt - cachedPromptTokens;
+          const uncachedPromptCostThisEntry = costs.prompt * (uncachedPromptTokens / 1000000);
+          uncachedPromptTotalCost += uncachedPromptCostThisEntry;
+          const cachedPromptCostThisEntry = cachedPromptModelCost * (cachedPromptTokens / 1000000);
+          cachedPromptTotalCost += cachedPromptCostThisEntry;
+          const cachedPromptSavingsThisEntry = cachedPromptModelCostSavings * (cachedPromptTokens / 1000000);
+          cachedPromptTotalSavings += cachedPromptSavingsThisEntry;
+          const completionCostThisEntry = costs.completion * (entry.tokens.completion / 1000000);
+          completionTotalCost += completionCostThisEntry;
         }
-        if(isNaN(sum)) debugger;
-        return sum;
+        const totalCost = cachedPromptTotalCost + uncachedPromptTotalCost + completionTotalCost;
+        if (isNaN(totalCost)) {
+          debugger;
+        }
+        return totalCost;
       }
 
       async function updateThreadUsageStatsSpendDisplay(threadId) {
@@ -5345,7 +5361,7 @@
               if(!signals.stop) alert(`Error during getBotReply:\n` + (openAiErrorTypeToReadableError[json.error.type] ? openAiErrorTypeToReadableError[json.error.type] : JSON.stringify(json.error, null, 2)+"\n\nPlease screenshot this error and share on our Discord server or Github."));
             }
             if(json?.usage) {
-              apiTokenUsage = {prompt:json?.usage.prompt_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
+              apiTokenUsage = {prompt:json?.usage.prompt_tokens, cachedprompt:json?.usage.prompt_token_details?.cached_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
             }
             const resultsReturned = json?.choices?.length;
             if (allowMultipleReplies) {
@@ -5433,7 +5449,7 @@
             }
 
             if(json?.usage) {
-              apiTokenUsage = {prompt:json?.usage.prompt_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
+              apiTokenUsage = {prompt:json?.usage.prompt_tokens, cachedprompt:json?.usage.prompt_token_details?.cached_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
             }
             result = sanitizeBotMessage(json?.choices?.[0].text.trim(), replyingCharacterName, smartQuoteMethod, deleteEmoji);
           }
@@ -5460,7 +5476,8 @@
       }
 
       async function trackTokenUsage({threadId, modelName, usageData, purpose}) {
-        console.log(`Token usage tracked for ${purpose}: prompt ${usageData.prompt}, completion ${usageData.completion}, total ${usageData.total}`);
+        const cachedTokens = (usageData.cachedPrompt) || 0;
+        console.log(`Token usage tracked for ${purpose}: prompt ${usageData.prompt}, cached prompt ${cachedTokens}, completion ${usageData.completion}, total ${usageData.total}`);
         
         // get the character id:
         let thread = await db.threads.get(threadId);
@@ -5470,11 +5487,12 @@
         let entry = await db.usageStats.get({dateHour, threadId, modelName});
         // create entry if it doesn't exist:
         if(!entry) {
-          entry = {dateHour, threadId, modelName, characterId, tokens:{prompt:0, completion:0, total:0}};
+          entry = {dateHour, threadId, modelName, characterId, tokens:{prompt:0, cachedprompt:0, completion:0, total:0}};
           await db.usageStats.add(entry);
         }
         // update db with new usage:
         entry.tokens.completion += usageData.completion;
+        entry.tokens.cachedprompt += cachedTokens;
         entry.tokens.prompt += usageData.prompt;
         entry.tokens.total += usageData.total;
         // need to use `where+modify` instead of `update` because I can't update schema to change the mistaken primary key of threadId to [dateHour+threadId+modelName] without making a mess: https://github.com/dexie/Dexie.js/issues/1025
@@ -5612,7 +5630,7 @@
         }
 
         if(apiTokenUsage) {
-          let usageData = {prompt:apiTokenUsage.prompt_tokens, completion:apiTokenUsage.completion_tokens, total:apiTokenUsage.total_tokens};
+          let usageData = {prompt:apiTokenUsage.prompt_tokens, cachedprompt:((apiTokenUsage.prompt_token_details?.cached_tokens) || 0), completion:apiTokenUsage.completion_tokens, total:apiTokenUsage.total_tokens};
           await trackTokenUsage({threadId, modelName, usageData, purpose:"chat completion"});
         }
 
