@@ -1337,16 +1337,17 @@
       // for openai and webgpu/webnn models (i.e. you don't need to setup your own inference server, and most people already have an openai account):
       // Prices are per 1M tokens
       let broadlyAvailableModels = [
-        {name:"chatgpt-4o-latest", shortLabel:"ChatGPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 5.00 , completion: 15.00 }},
+        {name:"chatgpt-4o-latest", shortLabel:"ChatGPT-4o Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 5.00 , completion: 15.00 }},
         {name:"gpt-4o", shortLabel:"GPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 2.50 , completion: 10.00 }},
         {name:"gpt-4o-mini", shortLabel:"GPT-4o-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.15, completion: 0.60}},
-        {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.50 , completion: 8.00 }},
-        {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.10, completion: 1.60}},
+        {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 2.00 , completion: 8.00 }},
+        {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.40, completion: 1.60}},
+        {name:"gpt-4.1-nano", shortLabel:"GPT-4.1-nano", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.10, completion: 0.40}},
         {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{prompt: 1.10 , completion: 4.40}},        
         {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.2, tokenPricing:{prompt:0.02, completion: 0.02}},
         {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:4, tokenPricing:{prompt:0.10, completion: 0.10}},
       ];
-      const modelPricingLastUpdateDate = new Date("2025-04-15");
+      const modelPricingLastUpdateDate = new Date("2025-06-02");
 
       // Model used for "good" character default option
       const openAIGoodCharacterModel = "gpt-4o-mini";
@@ -1799,10 +1800,11 @@
         $.chatThreads.querySelectorAll(".nameEditButton").forEach(btn => {
           btn.addEventListener("click", async function(e) {
             e.stopPropagation();
+            const threadId = parseInt(btn.closest(".thread").dataset.threadId);
+            let thread = await db.threads.get(threadId);
             // edit the thread name and re-render thread list.
-            let newName = prompt("Enter new name for this thread.");
-            if(newName) {
-              const threadId = parseInt(btn.closest(".thread").dataset.threadId);
+            let newName = prompt("Enter new name for this thread.", thread.name);
+            if(newName && (newName != thread.name)) {
               await db.threads.update(threadId, { name: newName });
               await renderThreadList();
               await incrementOperationsSinceLastExport();
