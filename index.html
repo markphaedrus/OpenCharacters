@@ -640,7 +640,7 @@
     <audio id="musicPlayer" style="display:none;"></audio>
 
     <script type="module">
-      import { $, $$, delay, showEl, hideEl, prompt2, createFloatingWindow, sanitizeHtml, textToSpeech, sha256Text, dedent, downloadTextOrBlob, createGpt3Tokenizer, cosineDistance, createLoadingModal, applyObjectOverrides, objectKeysAndTypesAreValid, addBackgroundToElement, importStylesheet, htmlToElement, jsonToBlob, plainquotes } from "./utils.js?v=34";
+      import { $, $$, delay, showEl, hideEl, prompt2, createFloatingWindow, sanitizeHtml, textToSpeech, sha256Text, dedent, downloadTextOrBlob, createGpt3Tokenizer, cosineDistance, createLoadingModal, applyObjectOverrides, objectKeysAndTypesAreValid, addBackgroundToElement, importStylesheet, htmlToElement, jsonToBlob, plainquotes, removeEmoji } from "./utils.js?v=34";
 
       let JSON5;
       (async function() {
@@ -1014,6 +1014,7 @@
         "The 'Export' button will now display approximately how many things you've done since you last exported the database. This provides a little reminder to export regularly.",
         "Some OpenAI models mix smart (curly) quotation marks with normal quotation marks. OpenCharacters now tries to convert everything to smart quotes for consistency. When you're only receiving one reply at a time (the default), this won't happen until the reply is completely received. There's an advanced setting to let you choose whether each character should convert plain quotes to curly quotes, curly quotes to plain quotes, or leave it unchanged. This also applies to user messages sent to that character.",
         "There's now a thread settings button (⚙️) at the top of the chat window. That currently just lets you control the maximum token length of the message history that gets sent to the bots. This is good for long chats where you want to use an expensive model because you like its replies, but don't like how expensive it gets with long chats. If you set this, you have to use multiples of 1000.",
+        "There's now an advanced character option to delete emoji from messages, if you like your replies emoji-free. Just like smart-quote handling, if you're receiving just one reply (the default), emoji won't be removed until after the whole reply is retrieved.",
       ];
 
       // If you ever want to do a full documentation update and delete the existing release notes, then do the following:
@@ -1342,7 +1343,7 @@
         {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.50 , completion: 8.00 }},
         {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{prompt: 0.10, completion: 1.60}},
         {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{prompt: 1.10 , completion: 4.40}},        
-        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.4, tokenPricing:{prompt:0.02, completion: 0.02}},
+        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.2, tokenPricing:{prompt:0.02, completion: 0.02}},
         {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:4, tokenPricing:{prompt:0.10, completion: 0.10}},
       ];
       const modelPricingLastUpdateDate = new Date("2025-04-15");
@@ -2453,6 +2454,7 @@
             },
             fitMessagesInContextMethod: "summarizeOld",
             smartQuoteMethod: "smartQuotes",
+            deleteEmoji: false,
             temperature: 0.7,
             customCode: "",
           },
@@ -2469,6 +2471,7 @@
             },
             fitMessagesInContextMethod: "summarizeOld",
             smartQuoteMethod: "smartQuotes",
+            deleteEmoji: false,
             temperature: 0.7,
             customCode: "",
           },
@@ -2485,6 +2488,7 @@
             },
             fitMessagesInContextMethod: "summarizeOld",
             smartQuoteMethod: "smartQuotes",
+            deleteEmoji: false,
             temperature: 0.7,
             customCode: "",
           },
@@ -2526,6 +2530,7 @@
             },
             fitMessagesInContextMethod: "summarizeOld",
             smartQuoteMethod: "smartQuotes",
+            deleteEmoji: false,
             temperature: 0.7,
             customCode: "",
           },
@@ -2570,6 +2575,7 @@
             },
             fitMessagesInContextMethod: "summarizeOld",
             smartQuoteMethod: "smartQuotes",
+            deleteEmoji: false,
             temperature: 0.7,
             customCode: dedent(`
               // Note: You can add multiple URLs for a single label and a random one will be selected.
@@ -3207,6 +3213,7 @@
           maxTokensPerMessage: { hidden:true, label: "📏 Max tokens per message:", infoTooltip:"This can be used to limit the length of the AI's responses. A 'token' is basically a word - 500 tokens is about 400 words in most tokenizers. Leave this blank to allow unlimited tokens to be generated per message. Note that you can also control the length of the AI's responses in the reminder message by saying something like 'Your response should be at most 3 sentences' or whatever.", type:"textLine", defaultValue:defaultValues.maxTokensPerMessage || "" },
           fitMessagesInContextMethod: { hidden:true, label: "Method for fitting messages within model's context limit.", type:"select", options:[{value:"dropOld", content:"drop oldest messages"}, {value:"summarizeOld", content:"summarize oldest messages"}], defaultValue: defaultValues.fitMessagesInContextMethod ?? "summarizeOld" },
           smartQuoteMethod: { hidden:true, label: "Method for handling quotation marks in user messages and bot replies.", type:"select", options:[{value:"noChange", content:"unchanged"}, {value:"smartQuotes", content:"Convert plain quotes to curly quotes"}, {value:"plainQuotes", content:"Convert curly quotes to plain quotes"}], defaultValue: defaultValues.smartQuoteMethod ?? "smartQuotes" },
+          deleteEmoji: {hidden:true, label: "Remove emoji from messages", type: "checkbox", defaultValue: defaultValues.deleteEmoji || false},
           textEmbeddingModelName: { hidden:true, label: "Text embedding model:", infoTooltip:"It's what converts each memory/lore entry (text) into a bunch of numbers that can be efficiently used for search/similarity/lookup.", type:"select", options:[{content: "default", value: "default"}, ...broadlyAvailableModels.filter(m => m.type === "text-embedding").map(m => ({value:m.name, content:m.shortLabel + " ($" + m.tokenPricing.prompt + ")"}))], defaultValue: defaultValues.textEmbeddingModelName ?? "default" },
           autoGenerateMemories: { hidden:true, show:d=>d.fitMessagesInContextMethod==="summarizeOld", label: "💽 Auto-generated character memories:", infoTooltip:"You can use /mem and /lore commands to manually add memories and lore. If you enable this feature, memories will be created by the character during each summarization step. This increases the cost a bit (maybe +20%) and makes responses a bit slower, but gives the character the ability to 'save' memories, and 'recall' them when they're relevant. Currently this only works within individual threads - i.e. characters can't recall details from *other* threads. You can manually copy memories and lore over into a new thread if needed.", type:"select", options:[{value:"none", content:"disabled"}, {value:"v1", content:"enabled"}], defaultValue: defaultValues.autoGenerateMemories ?? "v1" },
           avatarSize: { hidden:true, label: "Avatar size, as a multiple of the default size.", type:"textLine", defaultValue: defaultValues.avatar?.size ?? "1" },
@@ -4596,22 +4603,28 @@
         }
         return msg;
       }
-
-      function sanitizeUserMessage(msg, smartQuoteMethod) {
+      
+      function sanitizeUserMessage(msg, smartQuoteMethod, deleteEmoji) {
         if (smartQuoteMethod === null) {
           debugger;
           return msg;
         }
         msg = sanitizeQuotes(msg, smartQuoteMethod);
+        if (deleteEmoji) {
+          msg = removeEmoji(msg);
+        }
         return msg;
       }
 
-      function sanitizeBotMessage(msg, charname, smartQuoteMethod) {
+      function sanitizeBotMessage(msg, charname, smartQuoteMethod, deleteEmoji) {
         if ((charname === null) || (smartQuoteMethod === null)) {
           debugger;
           return msg;
         }
         msg = sanitizeQuotes(msg, smartQuoteMethod);
+        if (deleteEmoji) {
+          msg = removeEmoji(msg);
+        }
         // sometimes the gpt-turbo / chat models prefix messages with "characterName:"
         if(msg && msg.startsWith(`${charname}:`)) {
           msg = msg.slice(charname.length+1).trim();
@@ -4641,7 +4654,8 @@
         }
         let threadCharacter = await db.characters.get(thread.characterId);
         const userCharacter = await getUserCharacterObj(thread.id);
-        const smartQuoteMethod = threadCharacter.smartQuoteMethod || "smartQuotes"
+        const smartQuoteMethod = threadCharacter.smartQuoteMethod || "smartQuotes";
+        const deleteEmoji = threadCharacter.deleteEmoji;
 
         let fullMessagesArr = await prepareMessagesForBot({messages, onProgressMessage});
 
@@ -5297,7 +5311,7 @@
               await handleStreamingResponse(reader).catch(e => {  // this appends chunks to the `result` variable
                 if(!signals.stop) alert("getBotReply > modelType:chat > handleStreamingResponse:\n\n"+e.stack);
               });
-              result = sanitizeBotMessage(result, replyingCharacterName, smartQuoteMethod);
+              result = sanitizeBotMessage(result, replyingCharacterName, smartQuoteMethod, deleteEmoji);
               apiTokenUsage.completion += await countTokens(result, modelName);
               apiTokenUsage.total += await countTokens(result, modelName);
             }
@@ -5326,10 +5340,10 @@
             if (allowMultipleReplies) {
               result = new Array();
               for (let i = 0; i < json?.choices?.length; i++) {
-                result.push(sanitizeBotMessage(json?.choices?.[i].message.content, replyingCharacterName, smartQuoteMethod));
+                result.push(sanitizeBotMessage(json?.choices?.[i].message.content, replyingCharacterName, smartQuoteMethod, deleteEmoji));
               }
             } else {
-              result = sanitizeBotMessage(json?.choices?.[0].message.content, replyingCharacterName, smartQuoteMethod);
+              result = sanitizeBotMessage(json?.choices?.[0].message.content, replyingCharacterName, smartQuoteMethod, deleteEmoji);
             }
           }
 
@@ -5410,7 +5424,7 @@
             if(json?.usage) {
               apiTokenUsage = {prompt:json?.usage.prompt_tokens, completion:json?.usage.completion_tokens, total:json?.usage.total_tokens};
             }
-            result = sanitizeBotMessage(json?.choices?.[0].text.trim(), replyingCharacterName, smartQuoteMethod);
+            result = sanitizeBotMessage(json?.choices?.[0].text.trim(), replyingCharacterName, smartQuoteMethod, deleteEmoji);
           }
         }
 
@@ -6003,6 +6017,7 @@
           }
           let replyingCharacterName = replyingCharacter.name;
           let smartQuoteMethod = replyingCharacter.smartQuoteMethod;
+          let deleteEmoji = replyingCharacter.deleteEmoji;
 
           let signals = {stop:false, wasDeleted:false};
 
@@ -6065,14 +6080,14 @@
               }
               messageObj.variants[messageObj.variants.findIndex(v => v===null)] = messageObj.message;
               messageObj.variants.push(null);
-              messageObj.message = sanitizeBotMessage(message[0], replyingCharacterName, smartQuoteMethod);
+              messageObj.message = sanitizeBotMessage(message[0], replyingCharacterName, smartQuoteMethod, deleteEmoji);
               for(let i = 1; i < numReplies; i++) {
-                messageObj.variants.push(sanitizeBotMessage(message[i], replyingCharacterName, smartQuoteMethod));
+                messageObj.variants.push(sanitizeBotMessage(message[i], replyingCharacterName, smartQuoteMethod, deleteEmoji));
               }
             } else {
               messageObj.variants[messageObj.variants.findIndex(v => v===null)] = messageObj.message;
               messageObj.variants.push(null);
-              messageObj.message = sanitizeBotMessage(message, replyingCharacterName, smartQuoteMethod);
+              messageObj.message = sanitizeBotMessage(message, replyingCharacterName, smartQuoteMethod, deleteEmoji);
             }
 
             let shouldScrollDown = messageFeedIsNearBottom();
@@ -6583,6 +6598,7 @@
         const thread = await db.threads.get(threadId);
         let threadCharacter = await db.characters.get(thread.characterId);
         let smartQuoteMethod = threadCharacter.smartQuoteMethod;
+        let deleteEmoji = threadCharacter.deleteEmoji;
 
         let insertNewMessageEl = document.createElement("div");
         insertNewMessageEl.style.cssText = "margin-top: 1rem;";
@@ -6596,7 +6612,7 @@
           });
           if(!result) return;
           // Using the user-reply sanitization handler for everything here is close enough
-          result.content = sanitizeUserMessage(result.content, smartQuoteMethod);
+          result.content = sanitizeUserMessage(result.content, smartQuoteMethod, deleteEmoji);
           let characterId = result.author === "user" ? -1 : result.author === "system" ? -2 : thread.characterId;
           let messageObj = createMessageObj({threadId, message:result.content, instruction:result.instruction, characterId, hiddenFrom:result.hiddenFrom.split(",")});
           
@@ -6656,7 +6672,7 @@
         result.hiddenFrom = result.hiddenFrom.split(",").filter(x => x);
         if(!result.instruction || !result.instruction.trim()) result.instruction = null;
 
-        result.message = sanitizeUserMessage(result.message, smartQuoteMethod);
+        result.message = sanitizeUserMessage(result.message, smartQuoteMethod, deleteEmoji);
         await db.messages.update(messageId, result);
 
         let newMessage = await db.messages.get(messageId);
@@ -6732,6 +6748,7 @@
           customCode: "",
           fitMessagesInContextMethod: "dropOld",
           smartQuoteMethod: "smartQuotes",
+          deleteEmoji: false,
           avatar: {
             url: (await db.misc.get("userAvatarUrl"))?.value || "",
             // we leave `shape` and `size` as thread default
@@ -7198,7 +7215,8 @@
               }
 
               const smartQuoteMethod = threadCharacter.smartQuoteMethod;
-              message = sanitizeUserMessage(message, smartQuoteMethod);
+              const deleteEmoji = threadCharacter.deleteEmoji;
+              message = sanitizeUserMessage(message, smartQuoteMethod, deleteEmoji);
               let messageObj = createMessageObj({threadId, message, characterId:senderCharacterId});
               
               let id = await addMessageToDb(messageObj);

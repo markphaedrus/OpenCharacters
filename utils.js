@@ -58,6 +58,19 @@ export function plainquotes(str) {
   return str;
 }
 
+
+export function removeEmoji(msg) {
+  if (typeof msg != "string") {
+    return msg;
+  }
+  let filteredmsg = msg.replace(/\p{Emoji_Presentation}/gu, '');
+  if (filteredmsg != msg) {
+    console.log("Emoji in reply removed.");
+    msg = filteredmsg;
+  }
+  return msg;
+}
+
 export async function prompt2(specs, opts={}) {
 
   if(!opts.backgroundColor) opts.backgroundColor = prompt2.defaults.backgroundColor ?? (getComputedStyle(document.body).getPropertyValue('background-color')==="rgba(0, 0, 0, 0)" ? "#e8e8e8" : getComputedStyle(document.body).getPropertyValue('background-color'));
@@ -119,6 +132,18 @@ export async function prompt2(specs, opts={}) {
           <div style="display:flex;">
             <div style="flex-grow:1;">
               ${spec.buttons.map(b => `<button ${b.disabled === true ? "disabled" : ""} style="width:100%; border: 1px solid lightgrey; border-radius: 3px; padding:0.25rem; ${b.cssText || ""};">${b.text}</button>`).join(" ")}
+            </div>
+          </div>
+        </section>`;
+      structuredSectionsI++;
+    } else if(spec.type == "checkbox") {
+      sections += `
+        <section data-spec-key="${sanitizeHtml(key)}" class="structuredInputSection" data-is-hidden-extra="${spec.hidden === true ? "yes" : "no"}" style="${spec.hidden === true ? "display:none" : ""};">
+          <div class="sectionLabel" style="${structuredSectionsI === 0 ? "margin-top:0;" : ""}">${spec.label ?? ""}${spec.infoTooltip ? ` <span title="${sanitizeHtml(spec.infoTooltip)}" style="cursor:pointer;" onclick="alert(this.title)">ℹ️</span>` : ""}</div>
+          <div style="display:flex;">
+            <div style="flex-grow:1;">
+              <input data-initial-focus="${spec.focus === true ? "yes" : "no"}" id="check${sanitizeHtml(key)}" data-spec-key="${sanitizeHtml(key)}" ${spec.disabled === true ? "disabled" : ""} type="checkbox" ${spec.defaultValue ? "checked" : ""} />
+              <label for="check${sanitizeHtml(key)}">${spec.label ?? ""}</label>
             </div>
           </div>
         </section>`;
@@ -282,6 +307,8 @@ export async function prompt2(specs, opts={}) {
       if(el.tagName === "INPUT") {
         if(el.type == "file") {
           values[el.dataset.specKey] = el.files;
+        } else if (el.type == "checkbox") {
+          values[el.dataset.specKey] = el.checked;
         } else {
           values[el.dataset.specKey] = el.value;
         }
