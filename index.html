@@ -4618,6 +4618,8 @@
 
       const openAiErrorTypeToReadableError = {
         "insufficient_quota": "Looks like you've used up all your OpenAI credits. You can buy more here:\nhttps://platform.openai.com/account\n\nNote that OpenCharacters does not receive any money from this. OpenAI is the company that provides the 'brain' for your AI. OpenCharacters itself is completely free.",
+        "rate_limit_error": "OpenAI is restricting your requests because have made a lot of requests in a short period of time.",
+        "authentication_error": "OpenAI doesn't recognize the secret key it's been provided. Click the Settings button, and check that the secret key that has been entered there is still valid.",
       };
 
       // OpenAPI models frequently mix smart quotes with regular quotes
@@ -4755,15 +4757,26 @@
           content: "",
           _isMemoryLoreMarker: true
         };
+
+        let startOfConversationMarker = {
+          role: "system",
+          content: "This is the start of the roleplaying conversation.",
+          _isStartOfConversationMarker: true
+        };
+
+        messagesArr.unshift(startOfConversationMarker);
+
         if (memoryLorePlacementMethod === "startOfConversation") {
           messagesArr.unshift(memoryLoreMarker);
-        } else if (memoryLorePlacementMethod == "endOfConversation") {
+        }
+
+        if (memoryLorePlacementMethod === "endOfConversation") {
           messagesArr.push(memoryLoreMarker);
         }
 
         let messageIdsUsed = [];
         for(let m of messagesArr) {
-          if(m._isSummary || m._isMemoryLoreMarker) continue;
+          if(m._isSummary || m._isMemoryLoreMarker || m._isStartOfConversationMarker) continue;
           if(m.id === undefined) throw new Error("Message ID is undefined.");
           messageIdsUsed.push(m.id);
         }
@@ -4837,7 +4850,7 @@
           m.content = m.content.replace(/<!--hidden-from-ai-start-->.+?<!--hidden-from-ai-end-->/gs, "");
         }
 
-        let postReminderMessageContent;
+        let postReminderMessageContent = "";
         if(replyingCharacterName !== threadCharacterName || new Set(messagesArr.map(m => m.name)).size > 2) {
           postReminderMessageContent = `The next message will be written by ${replyingCharacterName}.`;
         }
@@ -5187,6 +5200,7 @@
           if(message._isSummary !== undefined) delete message._isSummary;
           if(message._isReminder !== undefined) delete message._isReminder;
           if(message._isMemoryLoreMarker !== undefined) delete message._isMemoryLoreMarker;
+          if(message._isStartOfConversationMarker !== undefined) delete message._isStartOfConversationMarker;
         }
 
         if (repliesToGenerate > 1) {
@@ -5283,7 +5297,7 @@
         if(!modelType) throw new Error("modelType is undefined for model "+modelName);
         let modelNoTemperatureSupport = getModel(modelName).noTemperatureSupport;
         let getStreamingResponse = threadCharacter.streamingResponse;
-        if (repliesToGenerate > 1) {
+        if (getStreamingResponse && (repliesToGenerate > 1)) {
           console.log("Disabling streaming response for multiple replies");
           getStreamingResponse = false;
         }
