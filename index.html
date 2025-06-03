@@ -3033,14 +3033,24 @@
         await incrementOperationsSinceLastExport();
       }
       
+      async function repliesPerSendChanged() {
+        const newRepliesPerSend = $.repliesPerSendMenu.value;
+        await db.misc.put({key:"repliesPerSend", value:newRepliesPerSend});
+      }
+
+      $.repliesPerSendMenu.addEventListener("change", repliesPerSendChanged, {passive: true});
+
       async function updateUIForModel(modelName) {
         if (modelSupportsMultipleResponses(modelName)) {
           console.log(`Model ${modelName} supports multiple replies.`);
           $.repliesPerSendMenu.style.display = "initial"; 
+          const repliesPerSend = (await db.misc.get("repliesPerSend"))?.value || "1";
+          $.repliesPerSendMenu.value = repliesPerSend;
+
         } else {
           console.log(`Model ${modelName} does not support multiple replies.`);
           $.repliesPerSendMenu.style.display = "none";
-          $.repliesPerSendMenu.value = 1;
+          $.repliesPerSendMenu.value = "1";
         }
       }
 
@@ -4987,7 +4997,6 @@
             }
           }
 
-          debugger;
           let relevantMemoriesAndLore = memoriesAndLore.sort((a, b) => b._relevanceScore - a._relevanceScore);
           if (memoryAndLorePercentage <= 0) {
             relevantMemoriesAndLore = relevantMemoriesAndLore.filter(m => m._relevanceScore > 0);            
