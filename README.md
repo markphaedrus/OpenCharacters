@@ -13,9 +13,14 @@
 * Updated for compatibility with new OpenAI models.
 * The UI now displays pricing info for the various models. (*Caution:* This pricing info is manually updated. You should still regularly check your OpenAI account to make sure that everything's as expected.)
 * Support for generating multiple replies from a single query. This is a big time and money saver if you like to generate lots of variant replies to a single conversation prompt. For example, if you generate five replies per query, then you'll only pay once for processing the conversation history (though you'll still pay for all five replies).
+* Lots of tweaks to how memories and lore are calculated, to help you balance consistency against cost.
 * UI changes to help in some accessibility situations.
+* Support for converting plain quotes into smart quotes or vice-versa (since OpenAI models tend to use them interchangeably), and to filter out emoji from responses, to help the conversation look more consistent.
 * Tweak to local hosting support: you can now choose to turn off the CORS proxy that's normally used when retrieving lore files. That lets you host your lore files locally, if you're using a local server with CORS support.
+* Switched to current versions of all the third-party libraries. 
+* Keeps a running count of how many changes you've made since you last backed up your conversations, to nudge you to back up regularly.
 * A number of little under-the-covers improvements.
+* Updates to documentation.
 
 ## Features of the original OpenCharacters
 
