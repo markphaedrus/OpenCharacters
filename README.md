@@ -19,7 +19,7 @@
 
 ## Features of the original OpenCharacters
 
-* The whole web app is a single HTML file - no server (serve it [locally](docs/local-setup.md) if you want).
+* The whole app runs on the client side - no server other than the AI model itself. (You can run OpenCharacters [locally](docs/local-setup.md) if you want).
 * All your data is stored in your browser's local storage (again, there is no server).
 * Share characters with a link - all character data is embedded within the link.
 * Auto-summarization algorithm (for old messages) which extends effective character memory/context size massively.
