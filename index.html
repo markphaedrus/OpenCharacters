@@ -1640,8 +1640,8 @@
 
         let threadIdToMoneySpent = {};
         for(let thread of threads) {
-          let entries = await db.usageStats.where("threadId").equals(thread.id).toArray();
-          threadIdToMoneySpent[thread.id] = usageStatsEntriesToCost(entries);
+          let costs = await usageStatsEntriesToCost(thread.id);
+          threadIdToMoneySpent[thread.id] = costs.total;
         }
 
         // move isFav threads to top without affecting order of the others:
@@ -1818,7 +1818,11 @@
         $.chatThreads.querySelectorAll(".usageStatsSpend").forEach(btn => {
           btn.addEventListener("click", async function(e) {
             e.stopPropagation();
-            alert("OpenCharacters is a completely free application, but to use it, you need to connect it with one or more 'API' providers which act as the 'brains' of your characters. The spend figure you just clicked represents an estimate for the amount of money you've spent using the API that you have connected. If you're using OpenAI, you can see authorative spend amounts here:\n\nhttps://platform.openai.com/account/usage");
+            const threadId = parseInt(btn.closest(".thread").dataset.threadId);
+            let costs = await usageStatsEntriesToCost(threadId);
+            let alerttext = `Approximate cost for this thread:\nPrompts sent to model: $${costs.prompt.toFixed(2)}\nReplies sent from model: $${costs.completion.toFixed(2)}\nTotal cost: $${costs.total.toFixed(2)}\n\n`;
+            alerttext += "OpenCharacters is a completely free application, but to use it, you need to connect it with one or more 'API' providers which act as the 'brains' of your characters. The spend figure you just clicked represents an estimate for the amount of money you've spent using the API that you have connected. If you're using OpenAI, you can see authorative spend amounts here:\n\nhttps://platform.openai.com/account/usage";
+            alert(alerttext);
           }, {passive: true});
         });
         $.chatThreads.querySelectorAll(".exportButton").forEach(btn => {
@@ -1889,7 +1893,8 @@
 
       }
 
-      function usageStatsEntriesToCost(entries) {
+      async function usageStatsEntriesToCost(threadId) {
+        let entries = await db.usageStats.where("threadId").equals(threadId).toArray();
         let cachedPromptTotalCost = 0;
         let uncachedPromptTotalCost = 0;
         let cachedPromptTotalSavings = 0;
@@ -1913,12 +1918,12 @@
         if (isNaN(totalCost)) {
           debugger;
         }
-        return totalCost;
+        return {total:totalCost, cachedPrompt:cachedPromptTotalCost, uncachedPrompt:uncachedPromptTotalCost,
+           prompt:cachedPromptTotalCost+uncachedPromptTotalCost, completion:completionTotalCost};
       }
 
       async function updateThreadUsageStatsSpendDisplay(threadId) {
-        let entries = await db.usageStats.where("threadId").equals(threadId).toArray();
-        let spent = usageStatsEntriesToCost(entries);
+        let spent = await usageStatsEntriesToCost(threadId).total;
         $.chatThreads.querySelector(`.thread[data-thread-id="${threadId}"] .usageStatsSpend`).textContent = "$" + spent.toFixed(2);
       }
 
@@ -8876,7 +8881,7 @@
       //   for(let entry of entries) {
       //     entry.daysSinceEpoch = Math.floor(entry.dateHour / (1000 * 60 * 60 * 24));
       //   }
-      //   let spent = usageStatsEntriesToCost(entries);
+      //   let spent = usageStatsEntriesToCost(entries).total;
 
       //   await prompt2({
       //     chart: {html: "", type: "none"}
