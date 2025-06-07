@@ -47,6 +47,11 @@ export function asInteger(x) {
   return NaN;
 }
 
+export function assertNumber(x) {
+  if ((typeof x !== "number") || isNaN(x)) { debugger; }
+  return x;
+}
+
 export function plainquotes(str) {
   if (typeof str != "string") {
     return str;
