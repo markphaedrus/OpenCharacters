@@ -1442,7 +1442,7 @@
       function modelIsOpenAiModel(modelName) {
         let modelObj = getModel(modelName);
         if (modelObj === undefined) { throw new Error(`Unknown model ${modelName}`); }
-        return modelObj.endpointUrl.startsWith("https://api.openai.com");
+        return modelObj.endpointUrl.startsWith("https://api.openai.com/");
       }
 
       async function threadIsUsingOpenAiModel(threadOrThreadId) {
@@ -3404,7 +3404,8 @@
             .join('; ');
 
           const paramString = parameters ? `; ${parameters}` : '';
-          const content = message.content.replace(/\n/g, '\n');
+          // Next line commented out because it doesn't actually do anything and its original intent is unclear
+          // const content = message.content.replace(/\n/g, '\n');
 
           text += `[${author}${paramString}]: ${content}\n`;
         });
@@ -8028,12 +8029,17 @@
       window.addEventListener("message", function(e) {
         let resolver = customCodeResolvers[e.data._id];
         if(resolver) {
-          if(e.data.success) {
-            resolver(e.data.result);
-          } else {
+          try {
+            if(e.data.success) {
+              resolver(e.data.result);
+            } else {
+              console.error(e);
+              alert("There was a problem with this character's custom code:\n\n"+e.data.result);
+              resolver(null);
+            }
+          } catch(e) {
             console.error(e);
-            alert("There was a problem with this character's custom code:\n\n"+e.data.result);
-            resolver(null);
+            alert("There was an exception while resolving this character's custom code:\n\n"+e.stack);
           }
           delete customCodeResolvers[e.data._id];
         }
@@ -8996,7 +9002,7 @@
           if(!config.tokenPricing) {
             config.tokenPricing = {prompt:0, completion:0};
           }
-          if(!config.apiKey && config.endpointUrl.startsWith("https://api.openai.com")) {
+          if(!config.apiKey && config.endpointUrl.startsWith("https://api.openai.com/")) {
             config.apiKey = "<OPENAI>";
           }
         }
