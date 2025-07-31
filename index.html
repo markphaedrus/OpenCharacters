@@ -3406,7 +3406,7 @@
           const paramString = parameters ? `; ${parameters}` : '';
           // Next line commented out because it doesn't actually do anything and its original intent is unclear
           // const content = message.content.replace(/\n/g, '\n');
-
+          const content = message.content;
           text += `[${author}${paramString}]: ${content}\n`;
         });
 
@@ -7951,7 +7951,7 @@
                 
                 window.parent.postMessage({_id:e.data._id, success:true, result:null}, "${window.location.origin}");
               }
-            }, {passive: false};
+            }, {passive: false});
           })();
 
           // this must come before the wait-for-initialization below, because it's what ends up triggering initialization
@@ -8008,7 +8008,9 @@
         </html>`); // need to escape the closing script tag so it doesn't close the script tag that this code is within
         
         // using template+split+join so dedent works properly
-        iframe.srcdoc = srcDoc.split("{{customCode}}").join(customCode);
+        let iframeSrcDoc = srcDoc.split("{{customCode}}").join(customCode);
+        // debugger;
+        iframe.srcdoc = iframeSrcDoc;
 
         await iframeLoadPromise;
 
