@@ -1342,22 +1342,25 @@
       // for openai and webgpu/webnn models (i.e. you don't need to setup your own inference server, and most people already have an openai account):
       // Prices are per 1M tokens
       let broadlyAvailableModels = [
-        {name:"chatgpt-4o-latest", shortLabel:"ChatGPT-4o Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:5.00, cachedprompt:5.00, completion:15.00 }},
-        {name:"gpt-4o", shortLabel:"GPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:2.50, cachedprompt:1.25, completion:10.00 }},
-        {name:"gpt-4o-mini", shortLabel:"GPT-4o-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.15, cachedprompt:0.075, completion:0.60 }},
+        {name:"gpt-5-chat-latest", shortLabel:"ChatGPT-5 Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:1.25, cachedprompt:0.125, completion:10.00 }},
+        {name:"gpt-5", shortLabel:"GPT-5", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:1.25, cachedprompt:0.125, completion:10.00 }},
+        {name:"gpt-5-mini", shortLabel:"GPT-5 Mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.25, cachedprompt:0.025, completion:2.00 }},
         {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:2.00, cachedprompt:0.50, completion:8.00 }},
         {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.40, cachedprompt:0.10, completion:1.60 }},
         {name:"gpt-4.1-nano", shortLabel:"GPT-4.1-nano", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.10, cachedprompt:0.025, completion:0.40 }},
+        {name:"gpt-4o", shortLabel:"GPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:2.50, cachedprompt:1.25, completion:10.00 }},
         {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{ prompt:1.10, cachedprompt:0.55, completion:4.40 }},        
+        {name:"chatgpt-4o-latest", shortLabel:"ChatGPT-4o Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:5.00, cachedprompt:5.00, completion:15.00 }},
+ 
         {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.4, tokenPricing:{ prompt:0.02, completion: 0.02 }},
         {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:4, tokenPricing:{ prompt:0.10, completion: 0.10 }},
       ];
-      const modelPricingLastUpdateDate = new Date("2025-06-02");
+      const modelPricingLastUpdateDate = new Date("2025-08-15");
 
       // Model used for "good" character default option
-      const openAIGoodCharacterModel = "gpt-4o-mini";
+      const openAIGoodCharacterModel = "gpt-5-mini";
       // Model used for "great" character default option
-      const openAIGreatCharacterModel = "gpt-4o";
+      const openAIGreatCharacterModel = "gpt-5-chat-latest";
       // Model used for OpenAI summarization
       const openAISummarizationModel = openAIGoodCharacterModel;
       // Model used for "recompute with alternate model" button
