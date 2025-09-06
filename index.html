@@ -9092,7 +9092,9 @@
         loadingModal.delete();
 
         if (success) {
-          await resetOperationsSinceLastExport();
+          if (options.keepExistingData !== "no") {
+            await resetOperationsSinceLastExport();
+          }
         } else {
           alert("The file that you're importing doesn't seem to be a valid format, or something went wrong during import. If you think your file is valid, please report this as a bug on Github or Discord.");
         }
