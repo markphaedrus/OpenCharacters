@@ -9,7 +9,7 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "events": "^3.3.0",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "fs": "^0.0.1-security",
     "js": "^0.1.0",
     "js-yaml": "^4.1.1",
