@@ -52,6 +52,18 @@ export function assertNumber(x) {
   return x;
 }
 
+// This function uses Math.random rather than the crypto library, so that it works on browsers that require
+// a secure context to use the crypto library. The generated ID should only be used for non-security purposes,
+// such as identifiers for threads.
+export function createInsecureUUID() {
+  debugger;
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, char => {
+    const rand = (Math.random() * 16) | 0;
+    const value = char === "x" ? rand : (rand & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
 export function plainquotes(str) {
   if (typeof str != "string") {
     return str;
