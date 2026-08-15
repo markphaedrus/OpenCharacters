@@ -1342,31 +1342,24 @@
       // for openai and webgpu/webnn models (i.e. you don't need to setup your own inference server, and most people already have an openai account):
       // Prices are per 1M tokens
       let broadlyAvailableModels = [
-        {name:"gpt-5.3-chat-latest", shortLabel:"ChatGPT-5.3 Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:1.75, cachedprompt:0.175, completion:14.00 }},
-        {name:"gpt-5.2-chat-latest", shortLabel:"ChatGPT-5.2 Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:1.75, cachedprompt:0.175, completion:14.00 }},
-        {name:"gpt-5.1-chat-latest", shortLabel:"ChatGPT-5.1 Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:1.25, cachedprompt:0.125, completion:10.00 }},
-        {name:"gpt-5-chat-latest", shortLabel:"ChatGPT-5 Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:1.25, cachedprompt:0.125, completion:10.00 }},
-        {name:"gpt-5.4", shortLabel:"GPT-5.4", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:2.50, cachedprompt:0.025, completion:15.00 }},
-        {name:"gpt-5.2", shortLabel:"GPT-5.2", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, maxMultipleResponses:8, tokenPricing:{ prompt:1.75, cachedprompt:0.0175, completion:14.00 }},
-        {name:"gpt-5.1", shortLabel:"GPT-5.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, maxMultipleResponses:8, tokenPricing:{ prompt:1.25, cachedprompt:0.125, completion:10.00 }},
-        {name:"gpt-5.1-mini", shortLabel:"GPT-5.1 Mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, maxMultipleResponses:8, tokenPricing:{ prompt:0.25, cachedprompt:0.025, completion:2.00 }},
-        {name:"gpt-5", shortLabel:"GPT-5", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:1.25, cachedprompt:0.125, completion:10.00 }},
-        {name:"gpt-5-mini", shortLabel:"GPT-5 Mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.25, cachedprompt:0.025, completion:2.00 }},
-        {name:"gpt-4.1", shortLabel:"GPT-4.1", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:2.00, cachedprompt:0.50, completion:8.00 }},
-        {name:"gpt-4.1-mini", shortLabel:"GPT-4.1-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.40, cachedprompt:0.10, completion:1.60 }},
-        {name:"gpt-4.1-nano", shortLabel:"GPT-4.1-nano", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.10, cachedprompt:0.025, completion:0.40 }},
-        {name:"gpt-4o", shortLabel:"GPT-4o", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:2.50, cachedprompt:1.25, completion:10.00 }},
-        {name:"o3-mini", shortLabel:"o3-mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:200000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, useMaxCompletionTokens: true, multipleResponseSupport:true, tokenPricing:{ prompt:1.10, cachedprompt:0.55, completion:4.40 }},        
+        {name:"chat-latest", shortLabel:"ChatGPT-5 Latest", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, multipleResponseSupport:true, tokenPricing:{ prompt:5.00, cachedprompt:0.50, completion:30.00 }},
+        {name:"gpt-5.6-sol", shortLabel:"GPT-5.6 Sol", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:5.00, cachedprompt:0.50, completion:30.00 }},
+        {name:"gpt-5.6-terra", shortLabel:"GPT-5.6 Terra", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:2.00, cachedprompt:0.20, completion:12.00 }},
+        {name:"gpt-5.6-luna", shortLabel:"GPT-5.6 Luna", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:true, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:0.20, cachedprompt:0.02, completion:1.20 }},
+        {name:"gpt-5.5", shortLabel:"GPT-5.5", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:5.00, cachedprompt:0.50, completion:30.00 }},
+        {name:"gpt-5.4", shortLabel:"GPT-5.4", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, maxMultipleResponses:8, threadKeyParameter: "prompt_cache_key", tokenPricing:{ prompt:2.50, cachedprompt:0.25, completion:15.00 }},
+        {name:"gpt-5.4-mini", shortLabel:"GPT-5.4 Mini", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:384000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, maxMultipleResponses:8, tokenPricing:{ prompt:0.75, cachedprompt:0.075, completion:4.50 }},
+        {name:"gpt-5.4-nano", shortLabel:"GPT-4.1-nano", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:128000, type:"chat-completion", systemRole: "system", noTemperatureSupport:false, multipleResponseSupport:true, tokenPricing:{ prompt:0.20, cachedprompt:0.02, completion:1.25 }},
  
-        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.4, tokenPricing:{ prompt:0.02, completion: 0.02 }},
+        {name:"text-embedding-3-small", shortLabel:"text-embedding-3-small", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:1.4, tokenPricing:{ prompt:0.13, completion: 0.13 }},
         {name:"text-embedding-ada-002", shortLabel:"text-embedding-ada-002", endpointUrl:"https://api.openai.com/v1/chat/completions", modelUrl:null, apiKey:"<OPENAI>", maxSequenceLength:8192, type:"text-embedding", noTemperatureSupport:false, useMaxCompletionTokens:false, multipleResponseSupport:false, averageInverseDistance:4, tokenPricing:{ prompt:0.10, completion: 0.10 }},
       ];
-      const modelPricingLastUpdateDate = new Date("2026-03-05");
+      const modelPricingLastUpdateDate = new Date("2026-08-10");
 
       // Model used for "good" character default option
-      const openAIGoodCharacterModel = "gpt-5.1-mini";
+      const openAIGoodCharacterModel = "gpt-5.6-luna";
       // Model used for "great" character default option
-      const openAIGreatCharacterModel = "gpt-5.3-chat-latest";
+      const openAIGreatCharacterModel = "gpt-5.6-sol";
       // Model used for OpenAI summarization
       const openAISummarizationModel = openAIGoodCharacterModel;
       // Model used for "recompute with alternate model" button
@@ -3116,6 +3109,15 @@
         activeThreadId = threadId;
         activeCharacterId = thread.characterId;
 
+        // Check to see whether we can actually use the current model -- this can become an issue if
+        // a user loads an old thread with a model that's no longer supported, or creates a new thread
+        // from a character whose default model is no longer supported
+        let modelTest = getCharacterModel(thread.modelName);
+        let oldModelIsGone = (modelTest === undefined);
+        if (modelTest === undefined) {
+          alert("This thread is configured to use the model '" + thread.modelName + "', which is no longer supported. Switching to the '" + openAIGoodCharacterModel + "' model. If this isn't what you want, please select a different model from the menu. If you see this message when you create a new thread with a custom character, you can fix it by editing the custom character and choosing a new default model.");
+          thread.modelName = openAIGoodCharacterModel;
+        }
         $.threadModelSelector.value = thread.modelName;
         await updateUIForModel(thread.modelName);
 
@@ -3157,17 +3159,9 @@
           closeLeftColumn();
         }
 
-        // Check to see whether we can actually use the current model -- this can become an issue if
-        // a user loads an old thread with a model that's no longer supported, or creates a new thread
-        // from a character whose default model is no longer supported
-        let modelTest = getCharacterModel(thread.modelName);
-        if (modelTest === undefined) {
-          alert("This thread is configured to use the model '" + thread.modelName + "', which is no longer supported. Switching to the '" + openAIGoodCharacterModel + "' model. If this isn't what you want, please select a different model from the menu. If you see this message when you create a new thread with a custom character, you can fix it by editing the custom character and choosing a new default model.");
-          thread.modelName = openAIGoodCharacterModel;
-          $.threadModelSelector.value = thread.modelName;
+        if (oldModelIsGone) {
           await threadModelSelectorChanged(); // this triggers the necessary db update and rerenders
         } else {
-          $.threadModelSelector.value = thread.modelName;
           await updateUIForModel(thread.modelName);
         }
 
@@ -3294,7 +3288,8 @@
           userCharacterName: { hidden:true, label: "User's name. This overrides the user's default username when chatting with this character.", type:"textLine", defaultValue: defaultValues.userCharacter?.name || "" },
           userCharacterAvatarUrl: { hidden:true, label: "User's avatar. This overrides the user's default avatar when chatting to this character.", type:"textLine", defaultValue: defaultValues.userCharacter?.avatar?.url || "" },
           // initialThreadMemories: { hidden:true, show:d=>d.autoGenerateMemories!=="none", label: "Initial thread-specific memories. The character will create memories based on the chat, but you can add some starter memories/lore here.", infoTooltip:"Manually-written memories can be used as 'dynamic' instruction/role/reminders that engage when relevant. This saves you from having to pack too much text into your instruction/reminder, which will 'eat up' your context, which means the AI will be able to see fewer recent messages, and summarization will have to be done more often.", type:"text", defaultValue: defaultValues.textEmbeddingModelName ?? "" },
-          temperature: { hidden:true, label: "🌡️ Creativity ('temperature'). Choose a value between 0 and 2. Higher values will make the output more random, while lower values will make it more focused and deterministic.", infoTooltip:"People seem to get good results between 0.7 and 1.2 - higher values may sacrifice some 'correctness' but should result in more 'imagination'. Not supported by all models.", type:"textLine", defaultValue: defaultValues.temperature ?? 0.85 },
+          temperature: { hidden:true, label: "🌡️ Creativity ('temperature'). Choose a value between 0.1 and 2, or a value of 0 to omit temperature data from your prompts. Higher values will make the output more random, while lower values will make it more focused and deterministic.", infoTooltip:"People seem to get good results between 0.7 and 1.2 - higher values may sacrifice some 'correctness' but should result in more 'imagination'. Not supported by all models.", type:"textLine", defaultValue: defaultValues.temperature ?? 0.85 },
+          topP: { hidden:true, label: "🌡️ Word variety ('top_p'). Choose a value between 0.1 and 0.8, or a value of 0 to omit this parameter from your prompts. Higher values will make the output more random, while lower values will make it more focused and deterministic.", type:"textLine", defaultValue: defaultValues.topP ?? 0 },
           loreBookUrlsText: { hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: `📖 Lorebook URLs - one per line. Use <a href='https://rentry.org' target='_blank'>rentry.org</a> or similar. Should be a url to the 'raw' text file, where your lore entries are separated by blank lines. For changes to propagate to <b>existing</b> threads, you need to use the <b>/lore</b> command and click the reload button. Visit <a href='${projectDocsURL}/memories-and-lore.md' target='_blank'>this page</a> to learn more.`, type:"text", height:"fit-content", defaultValue: loreBookUrlsText },
           customCode: { hidden:true, height:"fit-content", cssText:"white-space:pre; font-family:monospace;", label: `🧑‍💻 Custom JavaScript code. This allows you to e.g. give your bot access to the internet. Visit <a href='${projectDocsURL}/custom-code.md' target='_blank'>this page</a> to learn more.`, type:"text", height:"fit-content", defaultValue: defaultValues.customCode ?? "" },
           systemCharacterName: { hidden:true, label: "System's name:", type:"textLine", defaultValue: defaultValues.systemCharacter?.name || "" },
@@ -3366,6 +3361,9 @@
         result.temperature = Number(result.temperature);
 
         if(isNaN(result.temperature)) result.temperature = 0.8;
+
+        result.topP = Number(result.topP);
+        if (isNaN(result.topP)) result.topP = 0;
 
         result.memoryAndLorePercentage = Number(result.memoryAndLorePercentage);
 
@@ -4610,7 +4608,8 @@
         return loreBookIdEntries > 0 || loreBookUrlEntries > 0 || memories > 0;
       }
 
-      const retrievedMemoriesTokenLimitFraction = 0.075;
+      // const retrievedMemoriesTokenLimitFraction = 0.075;
+      const retrievedMemoriesTokenLimitFraction = 0.2;
 
       async function getTokenLimitForSummaryAndMessages(character, thread) {
 
@@ -5349,6 +5348,7 @@
         let modelType = getModel(modelName).type;
         if(!modelType) throw new Error("modelType is undefined for model "+modelName);
         let modelNoTemperatureSupport = getModel(modelName).noTemperatureSupport;
+        let modelTopPSupport = getModel(modelName).topPSupport;
         let getStreamingResponse = threadCharacter.streamingResponse;
         if (getStreamingResponse && (repliesToGenerate > 1)) {
           console.log("Disabling streaming response for multiple replies");
@@ -5386,7 +5386,12 @@
           }
           data.n = repliesToGenerate;
 
-          if(replyingCharacter.topP) data.top_p = replyingCharacter.topP;
+          if (modelTopPSupport) {
+            if(replyingCharacter.topP > 0) {
+              data.top_p = replyingCharacter.topP;
+            }
+          }
+           
           if(replyingCharacter.frequencyPenalty) data.frequency_penalty = replyingCharacter.frequencyPenalty;
           if(replyingCharacter.presencePenalty) data.presence_penalty = replyingCharacter.presencePenalty;
           if(replyingCharacter.stopSequences && replyingCharacter.stopSequences.length > 0) data.stop = replyingCharacter.stopSequences;
@@ -5480,6 +5485,11 @@
           };
           if (!(model.noTemperatureSupport)) {
             data.temperature = replyingCharacter.temperature ?? 0.7;
+          }
+         if (model.topPSupport) {
+            if(replyingCharacter.topP > 0) {
+              data.top_p = replyingCharacter.topP;
+            }
           }
           if (model.useMaxCompletionTokens) {
             data.max_completion_tokens = max_tokens;
@@ -5614,6 +5624,7 @@
         let modelType = modelObj.type;
         if(!modelType) throw new Error("modelType not found for model: "+modelName);
         let modelNoTemperatureSupport = modelObj.noTemperatureSupport;
+        let modelTopPSupport = modelObj.topPSupport;
 
         let result;
         let apiTokenUsage;
@@ -5643,8 +5654,13 @@
           if (!(modelNoTemperatureSupport)) {
             data.temperature = temperature ?? 0.7;
           }
+          if (modelTopPSupport) {
+            if(topP > 0) {
+              data.top_p = topP;
+            }
+          }
+
           if(stopSequences) data.stop = stopSequences;
-          if(topP) data.top_p = topP;
           if(frequencyPenalty) data.frequency_penalty = frequencyPenalty;
           if(presencePenalty) data.presence_penalty = presencePenalty;
 
@@ -5661,6 +5677,7 @@
           });
           
           if(json?.error) {
+            debugger;
             console.error(json.error);
             alert(`Error during getChatCompletion:\n` + (openAiErrorTypeToReadableError[json.error.type] ? openAiErrorTypeToReadableError[json.error.type] : JSON.stringify(json.error, null, 2)+"\n\nPlease screenshot this error and share on our Discord server or Github."));
           }
@@ -5689,8 +5706,12 @@
           if (!(modelNoTemperatureSupport)) {
             data.temperature = temperature ?? 0.7;
           }
+          if (modelTopPSupport) {
+            if(topP > 0) {
+              data.top_p = topP;
+            }
+          }
           if(stopSequences) data.stop.push(...stopSequences);
-          if(topP) data.top_p = topP;
           if(frequencyPenalty) data.frequency_penalty = frequencyPenalty;
           if(presencePenalty) data.presence_penalty = presencePenalty;
 
@@ -5707,6 +5728,7 @@
           });
           
           if(json?.error) {
+            debugger;
             console.error(json.error);
             alert(`Error during getChatCompletion:\n` + (openAiErrorTypeToReadableError[json.error.type] ? openAiErrorTypeToReadableError[json.error.type] : JSON.stringify(json.error, null, 2)+"\n\nPlease screenshot this error and share on our Discord server or Github."));
           }
